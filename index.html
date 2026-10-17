@@ -338,6 +338,15 @@ body.showing .tag small{font-size:12px;display:block}
   .prog{top:calc(4vh - 10px)}.sbrand{top:calc(4vh + 10px)}.sctl{top:calc(4vh + 6px)}
   .co .txt{font-size:13.5px}.co .txt small{font-size:11px}
 }
+
+.mixer{position:absolute;right:5vw;top:calc(7.5vh + 76px);z-index:6;width:min(330px,88vw);background:rgba(14,16,20,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px 18px;color:#fff;pointer-events:auto;display:none;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.mixer.open{display:block}
+.mixer b{display:block;font:800 15px Manrope,sans-serif;margin-bottom:10px}
+.mixer label{display:grid;grid-template-columns:110px 1fr 46px;align-items:center;gap:10px;font:600 14px Manrope,sans-serif;padding:8px 0}
+.mixer input{width:100%;accent-color:#5fdcf5;height:28px}
+.mixer em{font:600 13px "JetBrains Mono",monospace;font-style:normal;color:#9fb0c0;text-align:right}
+.mixer small{display:block;margin-top:6px;font:500 12px/1.4 Manrope,sans-serif;color:rgba(255,255,255,.6)}
+@media (max-width:820px){.mixer{top:calc(5vh + 58px);right:4vw}.mixer label{grid-template-columns:96px 1fr 42px;font-size:13px}}
 </style>
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
@@ -427,8 +436,16 @@ body.showing .tag small{font-size:12px;display:block}
   <div class="sctl">
     <button id="sPause" title="Pause / play (space)"></button>
     <button id="sSkip" title="Next scene (→)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v14l9-7zM15 5h3v14h-3z"/></svg></button>
+    <button id="sMix" title="Sound mixer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 4v9M5 17v3M12 4v3M12 11v9M19 4v11M19 19v1"/><circle cx="5" cy="15" r="2"/><circle cx="12" cy="9" r="2"/><circle cx="19" cy="17" r="2"/></svg></button>
     <button id="sVoice" title="Voice-over on / off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
     <button id="sExit" class="x" title="Exit show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="mixer" id="mixer">
+    <b>Sound mixer</b>
+    <label><span>🎙 Voice-over</span><input type="range" min="0" max="100" data-k="voice"><em></em></label>
+    <label><span>🎵 Music</span><input type="range" min="0" max="100" data-k="music"><em></em></label>
+    <label><span>🔔 Effects</span><input type="range" min="0" max="100" data-k="sfx"><em></em></label>
+    <small>Music lowers automatically while the narrator speaks.</small>
   </div>
   <div class="cap" id="cap"><div class="k" id="capK"></div><h2 id="capT"></h2><p id="capB"></p></div>
   <div class="scard" id="intro"><img src="assets/vcop-logo-light.png" alt="VCOP"><div class="t2">Product Demo</div><div class="t3" id="introHint"></div></div>
@@ -1243,19 +1260,76 @@ async function deskTray(d) {
   d.trayOut = out; refreshDemo();
 }
 
+/* ============================== MIXER: voice-over · music · effects ============================== */
+const MIX = { vol: { voice: 1, music: .5, sfx: .7 }, buf: {}, pending: {}, vo: null, mus: null, musKey: null, buses: null };
+try { Object.assign(MIX.vol, JSON.parse(localStorage.getItem('vcop-mix') || '{}')); } catch (e) { }
+const VO_KEYS = {
+  lockset: { 'BLOCKS Smart Lockset': 'l0', 'Crafted, not just built': 'l1', 'Tap your card': 'l2', 'Engineered security': 'l3', 'Or simply look': 'l4', 'Brains under the lid': 'l5', 'Every part, on show': 'l6', 'Made your way': 'l7', 'Your colours, your brand': 'l8' },
+  desk: { 'BNP Paribas Trader Desk': 'd0', 'Height at a touch': 'd1', 'Built to lift': 'd2', 'Cables, tamed': 'd3', 'Up to eight screens': 'd4', 'Cool, secure storage': 'd5', 'Every part, on show': 'd6', 'Back to back': 'd7', 'Specified your way': 'd8' },
+};
+const DUCK = .4;   // music drops to 40 % of its level while the narrator speaks
+function buses() {
+  if (MIX.buses) return MIX.buses;
+  const a = sfx.ctx(), voice = a.createGain(), music = a.createGain(), duck = a.createGain();
+  voice.gain.value = MIX.vol.voice; music.gain.value = MIX.vol.music; duck.gain.value = 1;
+  voice.connect(a.destination); duck.connect(music).connect(a.destination);
+  return MIX.buses = { a, voice, music, duck };
+}
+function setVol(k, v) {
+  MIX.vol[k] = v; try { localStorage.setItem('vcop-mix', JSON.stringify(MIX.vol)); } catch (e) { }
+  const b = MIX.buses, t = b ? b.a.currentTime : 0;
+  if (b && k === 'voice') b.voice.gain.setTargetAtTime(v, t, .05);
+  if (b && k === 'music') b.music.gain.setTargetAtTime(v, t, .05);
+  const fx = sfx.fx(); if (k === 'sfx' && fx) fx.gain.setTargetAtTime(v, fx.context.currentTime, .05);
+}
+function loadBuf(url) {
+  if (MIX.buf[url]) return Promise.resolve(MIX.buf[url]);
+  if (MIX.pending[url]) return MIX.pending[url];
+  return MIX.pending[url] = fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then(ab => new Promise((res, rej) => sfx.ctx().decodeAudioData(ab, res, rej))).then(b => (MIX.buf[url] = b)).catch(() => { delete MIX.pending[url]; return null; });
+}
+const voUrl = k => `assets/audio/vo-${k}.mp3`, musUrl = p => `assets/audio/music-${p === 'lockset' ? 'lock' : 'desk'}.mp3`;
+function preloadAudio(prod) { loadBuf(musUrl(prod)); Object.values(VO_KEYS[prod]).concat(prod === 'lockset' ? ['l4b', 'end'] : ['end']).forEach(k => loadBuf(voUrl(k))); }
+function withTimeout(p, ms) { return Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]); }
+async function playVO(key) {
+  if (!SHOW.voice || SHOW.fast) return false;
+  const buf = await withTimeout(loadBuf(voUrl(key)), 6000); if (!buf || !SHOW.on || SHOW.fast) return false;
+  const b = buses(); stopVO();
+  const src = b.a.createBufferSource(); src.buffer = buf; src.connect(b.voice); MIX.vo = src;
+  b.duck.gain.cancelScheduledValues(b.a.currentTime); b.duck.gain.setTargetAtTime(DUCK, b.a.currentTime, .12);
+  return new Promise(res => { src.onended = () => { if (MIX.vo === src) { MIX.vo = null; b.duck.gain.setTargetAtTime(1, b.a.currentTime, .5); } res(true); }; src.start(); });
+}
+function stopVO() { try { MIX.vo?.stop(); } catch (e) { } MIX.vo = null; }
+async function startMusic(prod) {
+  const b = buses(), url = musUrl(prod); MIX.musKey = url;
+  const buf = await withTimeout(loadBuf(url), 8000);
+  if (MIX.musKey !== url || !SHOW.on) return;
+  if (!buf) { sfx.music(true); return; }      // fallback: soft synth pad
+  stopMusic(true);
+  const src = b.a.createBufferSource(), g = b.a.createGain(); src.buffer = buf; src.loop = true; g.gain.value = 0;
+  src.connect(g).connect(b.duck); src.start(); g.gain.setTargetAtTime(1, b.a.currentTime, .8); MIX.mus = { src, g };
+}
+function stopMusic(now) {
+  sfx.music(false); MIX.musKey = now ? MIX.musKey : null;
+  const m = MIX.mus; if (!m) return; MIX.mus = null; const a = sfx.ctx();
+  m.g.gain.cancelScheduledValues(a.currentTime); m.g.gain.setTargetAtTime(0, a.currentTime, now ? .05 : .6); setTimeout(() => { try { m.src.stop(); } catch (e) { } }, now ? 200 : 2500);
+}
+
 /* ============================== SOUND ============================== */
 const sfx = (() => {
-  let AC = null, on = true, humNode = null, mus = null;
+  let AC = null, on = true, humNode = null, mus = null, fxBus = null;
+  const dest = a => { if (!fxBus) { fxBus = a.createGain(); fxBus.gain.value = MIX.vol.sfx; fxBus.connect(a.destination); } return fxBus; };
   const ac = () => { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; };
   const tone = (f, d, vol = .06, type = 'sine', when = 0) => { if (!on) return; const a = ac(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime + when;
-    o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05); };
+    o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(dest(a)); o.start(t); o.stop(t + d + .05); };
   const noise = (d, vol, f = 2500) => { if (!on) return; const a = ac(), b = a.createBuffer(1, a.sampleRate * d, a.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 3);
-    const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); fl.type = 'bandpass'; fl.frequency.value = f; g.gain.value = vol; s.buffer = b; s.connect(fl).connect(g).connect(a.destination); s.start(); };
+    const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); fl.type = 'bandpass'; fl.frequency.value = f; g.gain.value = vol; s.buffer = b; s.connect(fl).connect(g).connect(dest(a)); s.start(); };
   return {
+    ctx: () => ac(), fx: () => fxBus,
     get on() { return on; }, set on(v) { on = v; if (!v) { this.hum(false); this.music(false); } else if (SHOW.on) this.music(true); },
     music(v) {
       if (v && on && !mus) {
-        const a = ac(), g = a.createGain(), f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = 0; g.gain.linearRampToValueAtTime(.03, a.currentTime + 2.5); f.connect(g).connect(a.destination);
+        const a = ac(), g = a.createGain(), f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = 0; g.gain.linearRampToValueAtTime(.03, a.currentTime + 2.5); f.connect(g).connect(dest(a));
         const CH = [[130.8, 196, 246.9, 329.6], [110, 164.8, 261.6, 329.6], [87.3, 174.6, 220, 329.6], [98, 146.8, 246.9, 293.7]];
         const os = CH[0].map((fr, i) => { const o = a.createOscillator(), og = a.createGain(); o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = fr; o.detune.value = (i - 1.5) * 4; og.gain.value = i ? .5 : .8; o.connect(og).connect(f); o.start(); return o; });
         let k = 0; const iv = setInterval(() => { k = (k + 1) % CH.length; os.forEach((o, i) => o.frequency.setTargetAtTime(CH[k][i], a.currentTime, .6)); }, 4800);
@@ -1270,7 +1344,7 @@ const sfx = (() => {
     slide: () => noise(.5, .25, 900),
     hum(v) { if (v && on && !humNode) { const a = ac(), o = a.createOscillator(), o2 = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
         o.type = 'sawtooth'; o.frequency.value = 92; o2.type = 'sine'; o2.frequency.value = 184; f.type = 'lowpass'; f.frequency.value = 420; g.gain.value = 0;
-        g.gain.linearRampToValueAtTime(.035, a.currentTime + .15); o.connect(f); o2.connect(f); f.connect(g).connect(a.destination); o.start(); o2.start(); humNode = { o, o2, g, a }; }
+        g.gain.linearRampToValueAtTime(.035, a.currentTime + .15); o.connect(f); o2.connect(f); f.connect(g).connect(dest(a)); o.start(); o2.start(); humNode = { o, o2, g, a }; }
       if (!v && humNode) { const h = humNode; humNode = null; h.g.gain.linearRampToValueAtTime(0, h.a.currentTime + .15); setTimeout(() => { h.o.stop(); h.o2.stop(); }, 250); } },
   };
 })();
@@ -1592,9 +1666,9 @@ function caption(kicker, title, body) {
 }
 async function say(kicker, title, body) {
   caption(kicker, title, body);
-  const est = Math.max(3.2, body.split(/\s+/).length / 2.6 + 1.2);
-  if (SHOW.voice && 'speechSynthesis' in window && !SHOW.fast) { await wait(300); const t0 = performance.now(); await speak(title + '. ' + body); if (performance.now() - t0 < 600) await wait(est * 1000); await wait(350); }
-  else await wait(est * 1000);
+  const est = Math.max(3.2, body.split(/\s+/).length / 2.6 + 1.2), key = VO_KEYS[SHOW.prod]?.[title];
+  if (key && SHOW.voice && !SHOW.fast) { await wait(250); const ok = await playVO(key); if (ok) { await wait(450); chk(); return; } }
+  await wait(est * 1000);
   chk();
 }
 async function flashApply(set) { $('#flash').classList.add('on'); await sWait(200); for (const [k, id] of Object.entries(set)) applyFinish(k, id); $('#flash').classList.remove('on'); }
@@ -1645,7 +1719,7 @@ function lockShow() {
       await sWait(3100); clearCallouts();
       await sCam([-.4, .46, 1.12], [-.12, .24, .12], 2);
       await u; chk(); await v;
-      L2.selected = 3; const p = unlockSeq('pin'); await sCam([.75, .42, .7], [.3, .26, .03], 1.6); caption('04 · Hands-free', 'PIN entry', 'Four digits on the control panel — locker 04 opens.');
+      L2.selected = 3; const p = unlockSeq('pin'); await sCam([.75, .42, .7], [.3, .26, .03], 1.6); caption('04 · Hands-free', 'PIN entry', 'Four digits on the control panel — locker 04 opens.'); playVO('l4b');
       await p; chk(); await sWait(900);
     } },
     { name: 'Tech', run: async () => {
@@ -1774,7 +1848,7 @@ async function startShow(prod = current, chained = false) {
   const iOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone;
   $('#introHint').innerHTML = (innerWidth < innerHeight ? '↻ Turn your phone sideways for widescreen<br>' : '') + (iOS && !standalone && !document.fullscreenElement && !document.webkitFullscreenElement ? 'iPhone tip: Share → <b>Add to Home Screen</b> for true full screen' : '');
-  pickVoice(); sfx.music(true); resize(); wakeCtl();
+  preloadAudio(prod); startMusic(prod); resize(); wakeCtl();
   const chapters = prod === 'lockset' ? lockShow() : deskShow(); SHOW.n = chapters.length; progress();
   let finished = false;
   try {
@@ -1785,7 +1859,7 @@ async function startShow(prod = current, chained = false) {
   if (finished && !SHOW.abort) {
     SHOW.idx = SHOW.n; progress(); clearCallouts(); $('#cap').classList.remove('in');
     $('#endProd').textContent = products[prod].title; $('#endNext').textContent = prod === 'lockset' ? '▶ Watch the Trader Desk' : '▶ Watch the BLOCKS Lockset';
-    SHOW.drift = .2; card('#endCard', true); speak('VCOP. Valued, committed office partners.');
+    SHOW.drift = .2; card('#endCard', true); playVO('end');
     const other = prod === 'lockset' ? 'desk' : 'lockset';
     if (!SHOW.chained) {           // auto-continue to the other product, like a playlist
       let n = 8; const tick = () => { $('#endNext').textContent = `▶ Next: ${products[other].title} in ${n}s`; };
@@ -1807,7 +1881,7 @@ let wakeLock = null;
 async function keepAwake(on) { try { if (on && 'wakeLock' in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (e) { } }
 async function stopShow(then) {
   if (!SHOW.on) return;
-  SHOW.abort = true; SHOW.fast = true; SHOW.paused = false; SHOW.drift = 0; clearInterval(SHOW.cd);
+  SHOW.abort = true; SHOW.fast = true; SHOW.paused = false; SHOW.drift = 0; clearInterval(SHOW.cd); stopVO(); try { sfx.ctx().resume(); } catch (e) { }
   if ('speechSynthesis' in window) speechSynthesis.cancel();
   card('#endCard', false); card('#intro', false); $('#cap').classList.remove('in'); clearCallouts();
   await waitFor(() => !lock.busy && DK.desks.every(d => d.target == null), 5000);
@@ -1823,7 +1897,7 @@ async function stopShow(then) {
   }
   setExplode(0); screen('idle');
   SHOW.fast = false; SHOW.on = false; controls.enabled = true;
-  document.body.classList.remove('showing'); setTheme(SHOW.prevDark); sfx.music(false);
+  document.body.classList.remove('showing'); setTheme(SHOW.prevDark); stopVO(); stopMusic();
   if (!then) { exitFullscreen(); keepAwake(false); try { window.screen.orientation?.unlock?.(); } catch (e) { } }
   resize();
   if (then) return then();
@@ -1831,16 +1905,21 @@ async function stopShow(then) {
 }
 function setPaused(p) {
   SHOW.paused = p; $('#sPause').innerHTML = p ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>';
-  if ('speechSynthesis' in window) { p ? speechSynthesis.pause() : speechSynthesis.resume(); }
+  try { const a = sfx.ctx(); p ? a.suspend() : a.resume(); } catch (e) { }
   document.body.classList.toggle('show-paused', p);
 }
 let ctlTimer = 0;
 function wakeCtl() { document.body.classList.add('ctl-awake'); clearTimeout(ctlTimer); ctlTimer = setTimeout(() => { if (!SHOW.paused) document.body.classList.remove('ctl-awake'); }, 3200); }
-function unlockMedia() { try { if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } sfx.beep(1, .001, 0); } catch (e) { } }
+function unlockMedia() { try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; sfx.beep(1, .001, 0); buses(); } catch (e) { } }   // iOS: play even with the silent switch on
 $('#btnPlay').onclick = () => { unlockMedia(); startShow(current); };
 $('#sPause').onclick = () => { setPaused(!SHOW.paused); wakeCtl(); };
-$('#sSkip').onclick = () => { if (SHOW.paused) setPaused(false); SHOW.fast = true; if ('speechSynthesis' in window) speechSynthesis.cancel(); wakeCtl(); };
-$('#sVoice').onclick = () => { SHOW.voice = !SHOW.voice; $('#sVoice').classList.toggle('off', !SHOW.voice); if (!SHOW.voice && 'speechSynthesis' in window) speechSynthesis.cancel(); wakeCtl(); };
+$('#sSkip').onclick = () => { if (SHOW.paused) setPaused(false); SHOW.fast = true; stopVO(); wakeCtl(); };
+$('#sVoice').onclick = () => { SHOW.voice = !SHOW.voice; $('#sVoice').classList.toggle('off', !SHOW.voice); if (!SHOW.voice) stopVO(); wakeCtl(); };
+$('#sMix').onclick = e => { e.stopPropagation(); $('#mixer').classList.toggle('open'); wakeCtl(); };
+$('#mixer').addEventListener('pointerdown', e => e.stopPropagation());
+$$('#mixer input').forEach(inp => { inp.value = Math.round(MIX.vol[inp.dataset.k] * 100); const out = () => inp.nextElementSibling.textContent = inp.value + '%'; out();
+  inp.oninput = () => { setVol(inp.dataset.k, inp.value / 100); out(); wakeCtl(); }; });
+addEventListener('pointerdown', () => $('#mixer')?.classList.remove('open'));
 $('#sExit').onclick = () => stopShow();
 $('#endReplay').onclick = () => { unlockMedia(); clearInterval(SHOW.cd); stopShow(() => startShow(current, SHOW.chained)); };
 $('#endNext').onclick = () => { unlockMedia(); goFullscreen(); clearInterval(SHOW.cd); const all = $('#endNext').dataset.all === '1'; stopShow(() => { const o = all ? 'lockset' : (current === 'lockset' ? 'desk' : 'lockset'); setProduct(o, true); startShow(o, !all); }); };
@@ -1899,7 +1978,7 @@ resize(); setProduct('lockset', true); screen('idle');
 requestAnimationFrame(() => { loop(); setTimeout(() => $('#loader').classList.add('done'), 350); });
 // first interaction unlocks audio on iOS
 addEventListener('pointerdown', () => { if (sfx.on) sfx.beep(1, .001, 0); }, { once: true });
-window.__vcop = { SHOW, startShow, stopShow, lock, DK, products, camPreset, setProduct, unlockSeq, toggleLid, toggleTray, deskDoor, deskTray, setDeskHeight, get explode() { return explodeT; }, set explode(v) { explodeT = explodeTarget = v; } };
+window.__vcop = { MIX, SHOW, startShow, stopShow, lock, DK, products, camPreset, setProduct, unlockSeq, toggleLid, toggleTray, deskDoor, deskTray, setDeskHeight, get explode() { return explodeT; }, set explode(v) { explodeT = explodeTarget = v; } };
 </script>
 </body>
 </html>

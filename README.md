@@ -31,7 +31,7 @@ An interactive, browser-based 3D showcase that brings two VCOP furniture designs
 
 | Feature | Description |
 |---|---|
-| ▶ Play show | Full-screen, narrated cinematic tour: hero reveal, close-up shots with callouts on each mechanism, exploded view, colour changes and an end card. Pause, skip scenes, voice on/off |
+| ▶ Play show | Full-screen, narrated cinematic tour: hero reveal, close-up shots with callouts on each mechanism, exploded view, colour changes and an end card. Professional narrator voice-over and music (Higgsfield) with a sound mixer — voice, music and effects volumes; music ducks under the narrator automatically. Pause, skip scenes, voice on/off |
 | 360° view | Drag to rotate in any direction, pinch / scroll to zoom, preset views (3/4, front, side, top, back) |
 | Exploded view | One toggle separates every component and labels it |
 | Finishes | Change each component's material and colour: HPL, FENIX NTM®, woodgrain, Polykem, RAL powder-coat, metal finishes |
@@ -52,7 +52,7 @@ An interactive, browser-based 3D showcase that brings two VCOP furniture designs
 ```
 index.html        The whole app (HTML, CSS, JavaScript)
 vendor/           three.js 3D engine (r160) and add-ons
-assets/           VCOP logo and photoreal renders
+assets/           VCOP logo, photoreal renders, audio/ (voice-over + music)
 blueprints/       Original blueprints (JPG preview + PDF)
 ```
 
@@ -64,7 +64,7 @@ Static website — no build step. Hosted on GitHub Pages from the `main` branch.
 - Interactive demo: Daniel Phua
 - 3D engine: [three.js](https://threejs.org) (MIT License)
 - Fonts: [Manrope](https://fonts.google.com/specimen/Manrope) and [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) (SIL Open Font License)
-- Concept renders: generated with [Higgsfield](https://higgsfield.ai)
+- Concept renders, narrator voice-over and background music: generated with [Higgsfield](https://higgsfield.ai)
 
 ## Disclaimer
 
