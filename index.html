@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>VCOP Product Studio</title>
+<title>VCOP Product Demo</title>
+<meta name="application-name" content="VCOP Product Demo">
+<meta name="apple-mobile-web-app-title" content="VCOP Product Demo">
+<meta property="og:title" content="VCOP Product Demo">
+<meta property="og:description" content="Interactive 3D demo of VCOP's BLOCKS Smart Lockset and BNP Paribas Trader Desk.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://tzuchi-singapore.github.io/VCOP-Blocks-smart-lock-set-Demo/assets/render-blocks-lockset.jpg">
 <meta name="description" content="Interactive 3D showcase of VCOP's BLOCKS Smart Lockset and BNP Paribas Trader Desk — explode view, live finishes and working mechanisms.">
 <meta name="theme-color" content="#efeee9">
 <link rel="icon" href="assets/vcop-logo-dark.png">
@@ -231,7 +237,7 @@ table.spec td:last-child{font-weight:600}
   <div class="brand">
     <img class="logo-dark" src="assets/vcop-logo-dark.png" alt="VCOP — Valued Committed Office Partners">
     <img class="logo-light" src="assets/vcop-logo-light.png" alt="VCOP">
-    <div class="sub"><b>Product Studio</b><span>Live 3D design showcase</span></div>
+    <div class="sub"><b>Product Demo</b><span>Live 3D design showcase</span></div>
   </div>
   <nav class="seg" id="prodSeg">
     <button data-p="lockset" class="on"><img src="assets/render-blocks-lockset-thumb.jpg" alt="">BLOCKS Smart Lockset</button>
@@ -1256,7 +1262,8 @@ function libHTML() {
   return `<div class="lib"><p style="margin-top:14px">Finish families used by commercial furniture and smart-locker manufacturers. Every swatch below is selectable on the relevant component in <b>Finishes</b>.</p>
   ${Object.values(LIB).map(L => `<h4>${L.label}</h4><p>${L.spec}</p><div class="row">${L.list.map(f => `<span><i style="background:${swatchCSS(f)};background-size:cover"></i>${f.name}</span>`).join('')}</div>`).join('')}
   <h4>Hardware & electronics</h4><p>Zinc-plated hinges & pins, 304 stainless 'C' hooks, yellow-zinc lock bolts, ABS lock housings, FR-4 PCB lockboard, aluminium PSU housing, black-glass iPad & RFID bezels, rubber levelling feet.</p>
-  <h4>How the realism is built</h4><p>Physically-based (PBR) materials — colour, roughness, metalness and clearcoat per finish — lit by an HDR studio environment with soft shadows and ACES tone-mapping. Woodgrain, brushed-metal and perforation patterns are generated procedurally at runtime.</p></div>`;
+  <h4>How the realism is built</h4><p>Physically-based (PBR) materials — colour, roughness, metalness and clearcoat per finish — lit by an HDR studio environment with soft shadows and ACES tone-mapping. Woodgrain, brushed-metal and perforation patterns are generated procedurally at runtime.</p>
+  <p style="margin-top:22px;font-size:11px;color:var(--ink3)">© 2026 VCOP Pte Ltd · All rights reserved. Visual demonstration — final dimensions, materials and mechanisms subject to production drawings. 3D engine: three.js (MIT).</p></div>`;
 }
 function bindTab() {
   const on = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
