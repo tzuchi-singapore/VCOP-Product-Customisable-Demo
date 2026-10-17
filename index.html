@@ -1,2 +1,1425 @@
-# VCOP-Blocks-smart-lock-set-Demo
-A demo of how the lock set work and the design
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VCOP Product Studio</title>
+<meta name="description" content="Interactive 3D showcase of VCOP's BLOCKS Smart Lockset and BNP Paribas Trader Desk — explode view, live finishes and working mechanisms.">
+<meta name="theme-color" content="#efeee9">
+<link rel="icon" href="assets/vcop-logo-dark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#f6f5f2; --bg2:#e4e2dc; --ink:#141414; --ink2:#55524c; --ink3:#8b877f;
+  --card:rgba(255,255,255,.82); --card-solid:#ffffff; --line:rgba(20,20,20,.09); --line2:rgba(20,20,20,.16);
+  --chip:#f1efea; --chip-on:#141414; --chip-on-ink:#fff;
+  --accent:#00a3c4; --ok:#1fa463; --bad:#d6413a; --shadow:0 18px 50px -18px rgba(30,25,15,.28), 0 2px 8px rgba(30,25,15,.06);
+  --radius:18px;
+}
+:root[data-theme="dark"]{
+  --bg1:#1b1d21; --bg2:#0d0e10; --ink:#f2f1ee; --ink2:#b4b1aa; --ink3:#7d7a74;
+  --card:rgba(26,28,32,.84); --card-solid:#1a1c20; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.16);
+  --chip:#26292e; --chip-on:#f2f1ee; --chip-on-ink:#111;
+  --shadow:0 18px 50px -18px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(120% 90% at 40% 30%,var(--bg1) 0%,var(--bg2) 100%);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:14px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+#stage{position:fixed;inset:0;touch-action:none}
+#stage canvas{display:block;outline:none}
+.labels{position:absolute;inset:0;pointer-events:none}
+.tag{font:600 11px/1.25 Manrope,sans-serif;color:var(--ink);background:var(--card-solid);border:1px solid var(--line2);padding:5px 9px 5px 8px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 18px -8px rgba(0,0,0,.35);display:flex;gap:6px;align-items:center;transition:opacity .35s}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.tag small{display:block;font-weight:500;color:var(--ink3);font-size:10px}
+
+/* top bar */
+.top{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;gap:14px;padding:14px 18px;padding-top:max(14px,env(safe-area-inset-top));pointer-events:none}
+.top>*{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:12px;background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:8px 14px 8px 12px;box-shadow:var(--shadow)}
+.brand img{height:30px;display:block}
+.brand .logo-light{display:none}
+:root[data-theme="dark"] .brand .logo-dark{display:none}
+:root[data-theme="dark"] .brand .logo-light{display:block}
+.brand .sub{border-left:1px solid var(--line2);padding-left:12px;line-height:1.1}
+.brand .sub b{display:block;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.brand .sub span{font-size:11px;color:var(--ink3)}
+.seg{display:flex;background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:4px;box-shadow:var(--shadow);gap:2px}
+.seg button{padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;color:var(--ink2);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.seg button img{width:28px;height:20px;object-fit:cover;border-radius:5px}
+.seg button.on{background:var(--chip-on);color:var(--chip-on-ink)}
+.spacer{flex:1}
+.iconbtn{height:44px;min-width:44px;padding:0 13px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);font-weight:700;font-size:13px}
+.iconbtn svg{width:18px;height:18px;flex:none}
+.iconbtn:hover{border-color:var(--line2)}
+.top .actions{display:flex;gap:8px}
+
+/* left HUD */
+.hud{position:fixed;left:18px;top:50%;transform:translateY(-50%);z-index:9;display:flex;flex-direction:column;gap:8px}
+.hud .grp{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:5px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.hud button{width:44px;height:40px;border-radius:10px;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--ink2);display:flex;align-items:center;justify-content:center}
+.hud button svg{width:18px;height:18px}
+.hud button:hover{background:var(--chip)}
+.hud button.on{background:var(--chip-on);color:var(--chip-on-ink)}
+
+/* explode switch */
+.explode{position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:84px;display:flex;align-items:center;gap:12px;background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 16px;box-shadow:var(--shadow);font-weight:800;font-size:13px}
+.explode small{display:block;font-weight:500;font-size:11px;color:var(--ink3)}
+.switch{width:52px;height:30px;border-radius:999px;background:var(--line2);position:relative;transition:background .25s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.explode.on .switch{background:var(--accent)}
+.explode.on .switch::after{transform:translateX(22px)}
+
+/* status */
+.status{position:fixed;z-index:9;left:calc(50% - 200px);transform:translateX(-50%);bottom:26px;max-width:min(560px,80vw);background:var(--card-solid);border:1px solid var(--line);border-radius:999px;padding:10px 18px 10px 14px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;transition:opacity .3s,transform .3s}
+.status i{width:9px;height:9px;border-radius:50%;background:var(--ink3);flex:none}
+.status.ok i{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 22%,transparent)}
+.status.bad i{background:var(--bad);box-shadow:0 0 0 4px color-mix(in srgb,var(--bad) 22%,transparent)}
+.status.busy i{background:var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 25%,transparent)}}
+
+/* panel */
+.panel{position:fixed;z-index:11;right:18px;top:84px;bottom:18px;width:392px;background:var(--card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.grab{display:none}
+.ptitle{padding:18px 20px 6px}
+.ptitle .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800}
+.ptitle h1{margin:4px 0 2px;font-size:21px;line-height:1.15;letter-spacing:-.01em}
+.ptitle p{margin:0;color:var(--ink2);font-size:12.5px}
+.tabs{display:flex;gap:4px;margin:12px 16px 0;padding:4px;background:var(--chip);border-radius:12px}
+.tabs button{flex:1;padding:8px 4px;border-radius:9px;font-weight:700;font-size:12.5px;color:var(--ink2)}
+.tabs button.on{background:var(--card-solid);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.pbody{flex:1;overflow:auto;padding:6px 20px 24px;scrollbar-width:thin}
+.sec{margin-top:16px}
+.sec h3{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin:0 0 8px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.sec h3 em{font-style:normal;letter-spacing:0;text-transform:none;font-weight:600;color:var(--ink2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:9px 12px;border-radius:11px;background:var(--chip);font-weight:700;font-size:12.5px;border:1px solid transparent;display:flex;align-items:center;gap:7px}
+.chip:hover{border-color:var(--line2)}
+.chip.on{background:var(--chip-on);color:var(--chip-on-ink)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.chip .dot.open{background:var(--ok)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btnrow.three{grid-template-columns:1fr 1fr 1fr}
+.act{padding:12px 10px;border-radius:13px;background:var(--card-solid);border:1px solid var(--line2);font-weight:700;font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:transform .15s,border-color .2s}
+.act:hover{border-color:var(--accent)}
+.act:active{transform:scale(.97)}
+.act svg{width:24px;height:24px;color:var(--accent)}
+.act.primary{background:var(--chip-on);color:var(--chip-on-ink);border-color:transparent}
+.act.primary svg{color:inherit}
+.act small{font-weight:500;color:var(--ink3);font-size:10.5px}
+.act.primary small{color:inherit;opacity:.65}
+.act[disabled]{opacity:.45;pointer-events:none}
+.note{font-size:11.5px;color:var(--ink3);margin-top:8px;line-height:1.45}
+
+/* desk controller */
+.ctrl{background:#121316;border-radius:18px;padding:16px;color:#fff;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 30px -14px rgba(0,0,0,.6)}
+.ctrl .disp{font-family:"JetBrains Mono",monospace;font-size:38px;font-weight:600;color:#7ff3ff;text-shadow:0 0 14px rgba(0,220,255,.55);letter-spacing:.02em;line-height:1}
+.ctrl .disp small{font-size:13px;color:#69808a;margin-left:6px;text-shadow:none}
+.ctrl .range{font-size:10.5px;color:#7b8288;margin-top:6px;font-family:"JetBrains Mono",monospace}
+.ctrl .bar{height:5px;border-radius:5px;background:#2a2d33;margin-top:8px;overflow:hidden}
+.ctrl .bar b{display:block;height:100%;background:linear-gradient(90deg,#00a3c4,#7ff3ff);width:10%}
+.ctrl .ud{display:flex;flex-direction:column;gap:8px}
+.ctrl .ud button{width:62px;height:52px;border-radius:13px;background:linear-gradient(#2c2f35,#1c1e22);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 3px 0 #000;display:flex;align-items:center;justify-content:center;color:#fff;user-select:none;-webkit-user-select:none;touch-action:none}
+.ctrl .ud button:active,.ctrl .ud button.hold{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 0 #000;color:#7ff3ff}
+.ctrl .mem{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ctrl .mem button{padding:9px 6px;border-radius:11px;background:#23262b;color:#d7dbe0;font-weight:700;font-size:12px;line-height:1.2}
+.ctrl .mem button small{display:block;font-family:"JetBrains Mono",monospace;color:#7b8288;font-weight:400;font-size:10.5px}
+.ctrl .mem button.on{background:#0d3a45;color:#7ff3ff}
+
+/* swatches */
+.parts{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.parts .chip{flex:none}
+.parts .chip .sw{width:16px;height:16px;border-radius:5px;border:1px solid var(--line2);background-size:cover}
+.cats{display:flex;gap:6px;flex-wrap:wrap}
+.cats .chip{padding:7px 10px;font-size:12px}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.swatch{display:flex;flex-direction:column;gap:5px;align-items:center;text-align:center;font-size:10.5px;font-weight:600;color:var(--ink2);line-height:1.2}
+.swatch .s{width:100%;aspect-ratio:1;border-radius:13px;border:1px solid var(--line2);position:relative;box-shadow:inset 0 -10px 20px rgba(0,0,0,.08);background-size:cover}
+.swatch.on .s{outline:2.5px solid var(--accent);outline-offset:2px}
+.swatch.on{color:var(--ink)}
+.fincard{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--chip);font-size:12px;color:var(--ink2);line-height:1.5}
+.fincard b{color:var(--ink);font-size:13px}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preset{padding:10px;border-radius:13px;background:var(--card-solid);border:1px solid var(--line2);text-align:left;font-weight:700;font-size:12.5px}
+.preset .strip{display:flex;height:18px;border-radius:6px;overflow:hidden;margin-bottom:7px}
+.preset .strip span{flex:1;background-size:cover}
+
+/* specs */
+table.spec{width:100%;border-collapse:collapse;font-size:12.5px}
+table.spec td{padding:8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.spec td:first-child{color:var(--ink3);width:40%;padding-right:10px;font-weight:600}
+table.spec td:last-child{font-weight:600}
+.bpthumb{display:block;width:100%;border-radius:14px;border:1px solid var(--line2);overflow:hidden;position:relative;background:#fff}
+.bpthumb img{width:100%;display:block}
+.bpthumb span{position:absolute;right:10px;bottom:10px;background:#111;color:#fff;font-weight:700;font-size:12px;padding:7px 11px;border-radius:9px}
+.lib h4{margin:16px 0 4px;font-size:13.5px}
+.lib p{margin:0 0 8px;font-size:12px;color:var(--ink2);line-height:1.5}
+.lib .row{display:flex;flex-wrap:wrap;gap:6px}
+.lib .row span{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;background:var(--chip);border-radius:8px;padding:4px 8px 4px 4px}
+.lib .row span i{width:16px;height:16px;border-radius:5px;border:1px solid var(--line2);background-size:cover}
+
+/* modals */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,10,12,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;flex-direction:column}
+.modal.open{display:flex}
+.mhead{display:flex;align-items:center;gap:10px;padding:14px 16px;padding-top:max(14px,env(safe-area-inset-top));color:#fff}
+.mhead b{flex:1;font-size:15px}
+.mhead a,.mhead button{color:#fff;background:rgba(255,255,255,.12);border-radius:11px;padding:10px 13px;font-weight:700;font-size:13px;text-decoration:none}
+.mview{flex:1;overflow:hidden;position:relative;touch-action:none;cursor:grab}
+.mview img{position:absolute;left:50%;top:50%;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.5);border-radius:4px}
+.mtabs{display:flex;gap:6px;padding:0 16px 14px}
+.mtabs button{color:#fff;background:rgba(255,255,255,.1);padding:8px 12px;border-radius:10px;font-weight:700;font-size:12.5px}
+.mtabs button.on{background:#fff;color:#111}
+.gallery{flex:1;overflow:auto;padding:0 16px 24px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));align-content:start}
+.gallery figure{margin:0;background:#111;border-radius:16px;overflow:hidden;color:#ddd}
+.gallery img{width:100%;display:block}
+.gallery figcaption{padding:12px 14px;font-size:12.5px}
+.gallery figcaption b{color:#fff;display:block;font-size:14px}
+
+/* loader */
+.loader{position:fixed;inset:0;z-index:100;background:var(--bg1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .7s}
+.loader img{height:56px}
+.loader .lbar{width:180px;height:3px;background:var(--line2);border-radius:3px;overflow:hidden}
+.loader .lbar b{display:block;height:100%;width:40%;background:var(--ink);animation:lb 1.1s ease-in-out infinite}
+@keyframes lb{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+.loader.done{opacity:0;pointer-events:none}
+.hint{position:fixed;z-index:8;left:84px;bottom:28px;font-size:11.5px;color:var(--ink3);font-weight:600;display:flex;gap:14px}
+
+/* mobile */
+@media (max-width:820px){
+  .top{flex-wrap:wrap;padding:10px 10px 0;gap:8px}
+  .brand{padding:6px 10px}
+  .brand img{height:24px}
+  .brand .sub{display:none}
+  .top .actions{gap:6px}
+  .iconbtn{height:40px;min-width:40px;padding:0 10px}
+  .iconbtn .t{display:none}
+  .seg{order:3;width:100%}
+  .seg button{flex:1;justify-content:center;padding:8px 6px;font-size:12px}
+  .seg button img{display:none}
+  .explode{top:auto;bottom:calc(46vh + 14px);left:12px;transform:none;padding:5px 6px 5px 12px;font-size:12px}
+  .explode small{display:none}
+  .switch{width:44px;height:26px}.switch::after{width:20px;height:20px}.explode.on .switch::after{transform:translateX(18px)}
+  .hud{left:auto;right:10px;top:auto;bottom:calc(46vh + 14px);transform:none;flex-direction:row}
+  .hud .grp{flex-direction:row}
+  .hud button{width:38px;height:36px}
+  .hud .views{display:none}
+  .status{left:50%;top:116px;bottom:auto;font-size:11.5px;padding:7px 12px 7px 10px;max-width:92vw;white-space:nowrap}
+  .status span{overflow:hidden;text-overflow:ellipsis}
+  .tag{font-size:9.5px;padding:3px 7px 3px 6px}.tag small{display:none}.tag i{width:5px;height:5px}
+  .panel{left:0;right:0;bottom:0;top:auto;width:auto;height:46vh;border-radius:22px 22px 0 0;border-bottom:0;transition:height .35s cubic-bezier(.3,1,.4,1)}
+  .panel.min{height:132px}
+  .grab{display:block;width:44px;height:5px;border-radius:5px;background:var(--line2);margin:8px auto 0;flex:none}
+  .ptitle{padding:8px 18px 2px}
+  .ptitle h1{font-size:18px}
+  .ptitle p{display:none}
+  .tabs{margin:8px 14px 0}
+  .pbody{padding:2px 16px calc(24px + env(safe-area-inset-bottom))}
+  .hint{display:none}
+}
+</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+</head>
+<body>
+<div class="loader" id="loader"><img src="assets/vcop-logo-dark.png" alt="VCOP"><div class="lbar"><b></b></div></div>
+
+<div id="stage"></div>
+
+<header class="top">
+  <div class="brand">
+    <img class="logo-dark" src="assets/vcop-logo-dark.png" alt="VCOP — Valued Committed Office Partners">
+    <img class="logo-light" src="assets/vcop-logo-light.png" alt="VCOP">
+    <div class="sub"><b>Product Studio</b><span>Live 3D design showcase</span></div>
+  </div>
+  <nav class="seg" id="prodSeg">
+    <button data-p="lockset" class="on"><img src="assets/render-blocks-lockset-thumb.jpg" alt="">BLOCKS Smart Lockset</button>
+    <button data-p="desk"><img src="assets/render-trader-desk-thumb.jpg" alt="">Trader Desk</button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="actions">
+    <button class="iconbtn" id="btnBlueprint" title="Original blueprint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h5"/></svg><span class="t">Blueprint</span></button>
+    <button class="iconbtn" id="btnRenders" title="Photoreal renders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg><span class="t">Renders</span></button>
+    <button class="iconbtn" id="btnTheme" title="Light / dark studio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+    <button class="iconbtn" id="btnSound" title="Sound"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9v6h4l5 4V5L8 9z"/><path id="sndWave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+  </div>
+</header>
+
+<div class="hud">
+  <div class="grp views">
+    <button data-view="iso" class="on" title="Perspective">3/4</button>
+    <button data-view="front" title="Front">FRT</button>
+    <button data-view="side" title="Side">SIDE</button>
+    <button data-view="top" title="Top">TOP</button>
+    <button data-view="back" title="Back">BACK</button>
+  </div>
+  <div class="grp">
+    <button id="btnSpin" title="Auto-rotate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/></svg></button>
+    <button id="btnReset" title="Reset view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+</div>
+
+<button class="explode" id="btnExplode"><div>Exploded view<small>See every internal component</small></div><span class="switch"></span></button>
+
+<div class="status" id="status"><i></i><span id="statusText">Drag to rotate · pinch or scroll to zoom</span></div>
+<div class="hint"><span>Drag · rotate</span><span>Scroll · zoom</span><span>Right-drag · pan</span><span>Tap a part · interact</span></div>
+
+<aside class="panel" id="panel">
+  <div class="grab" id="grab"></div>
+  <div class="ptitle">
+    <div class="eyebrow" id="pEyebrow"></div>
+    <h1 id="pTitle"></h1>
+    <p id="pSub"></p>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-tab="demo" class="on">Live demo</button>
+    <button data-tab="finish">Finishes</button>
+    <button data-tab="specs">Specs</button>
+    <button data-tab="lib">Library</button>
+  </div>
+  <div class="pbody" id="pbody"></div>
+</aside>
+
+<div class="modal" id="bpModal">
+  <div class="mhead"><b id="bpTitle">Original blueprint</b><button id="bpZoomOut">−</button><button id="bpZoomIn">+</button><a id="bpPdf" href="#" target="_blank" rel="noopener">PDF</a><button data-close>Close</button></div>
+  <div class="mtabs" id="bpTabs"><button data-bp="lockset" class="on">BLOCKS Demo Kit</button><button data-bp="desk">BNP Paribas Trader Desk</button></div>
+  <div class="mview" id="bpView"><img id="bpImg" alt="Blueprint"></div>
+</div>
+
+<div class="modal" id="rdModal">
+  <div class="mhead"><b>Photoreal concept renders</b><button data-close>Close</button></div>
+  <div class="gallery">
+    <figure><img src="assets/render-blocks-lockset.jpg" alt="BLOCKS smart lockset render"><figcaption><b>BLOCKS Smart Lockset — Demo Kit</b>AI studio render generated with Higgsfield from the VCOP blueprint brief.</figcaption></figure>
+    <figure><img src="assets/render-trader-desk.jpg" alt="Trader desk render"><figcaption><b>BNP Paribas — Trader Desk 1500 × 950</b>AI environment render generated with Higgsfield from the VCOP blueprint brief.</figcaption></figure>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const PI = Math.PI;
+const isMobile = () => innerWidth <= 820;
+
+/* ============================== RENDERER / SCENE ============================== */
+const stage = $('#stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth <= 820 ? 1.75 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.domElement.className = 'labels';
+stage.appendChild(labelRenderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(32, 1, 0.01, 60);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minPolarAngle = 0; controls.maxPolarAngle = PI;          // rotate anywhere, incl. underneath
+controls.autoRotateSpeed = 1.2; controls.zoomSpeed = 0.9;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0xd9d4ca, 0.55); scene.add(hemi);
+const key = new THREE.DirectionalLight(0xfffaf2, 2.4);
+key.position.set(2.6, 4.6, 3.2); key.castShadow = true;
+key.shadow.mapSize.setScalar(innerWidth <= 820 ? 1024 : 2048);
+Object.assign(key.shadow.camera, { left: -2.4, right: 2.4, top: 2.6, bottom: -2.4, near: 0.5, far: 14 });
+key.shadow.bias = -0.0003; key.shadow.normalBias = 0.012;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xdde7ff, 0.8); rim.position.set(-3, 2.4, -2.8); scene.add(rim);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: 0.2 }));
+ground.rotation.x = -PI / 2; ground.receiveShadow = true; scene.add(ground);
+const contact = (() => {
+  const c = cvs(256, 256), g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(.55, 'rgba(0,0,0,.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: .55 }));
+  m.rotation.x = -PI / 2; m.position.y = 0.0008; m.renderOrder = -1; scene.add(m); return m;
+})();
+
+/* ============================== UTILITIES ============================== */
+function cvs(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function rng(seed = 1) { let s = seed % 2147483647; if (s <= 0) s += 2147483646; return () => ((s = s * 16807 % 2147483647) - 1) / 2147483646; }
+const ease = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, out: t => 1 - Math.pow(1 - t, 3), in: t => t * t * t, back: t => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }, lin: t => t };
+const tweens = [];
+function tween(dur, fn, e = ease.io) { return new Promise(res => tweens.push({ t: 0, dur, fn, e, res })); }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const lerp = (a, b, t) => a + (b - a) * t;
+const box = (w, h, d, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.castShadow = m.receiveShadow = true; return m; };
+const cyl = (r, h, mat, seg = 32, r2) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r2 ?? r, h, seg), mat); m.castShadow = m.receiveShadow = true; return m; };
+const rbox = (w, h, d, r, mat, s = 4) => { const m = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, s, r), mat); m.castShadow = m.receiveShadow = true; return m; };
+function at(o, x, y, z) { o.position.set(x, y, z); return o; }
+function shadows(o) { o.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } }); return o; }
+
+/* ---------- procedural textures ---------- */
+const TEX = {};
+function noiseTex(key, size, lo, hi, rep) {
+  if (TEX[key]) return TEX[key];
+  const c = cvs(size, size), g = c.getContext('2d'), d = g.createImageData(size, size), r = rng(size * 7 + lo);
+  for (let i = 0; i < size * size; i++) { const v = lo + r() * (hi - lo); d.data[i * 4] = d.data[i * 4 + 1] = d.data[i * 4 + 2] = v; d.data[i * 4 + 3] = 255; }
+  g.putImageData(d, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); return TEX[key] = t;
+}
+function brushedTex() {
+  if (TEX.brushed) return TEX.brushed;
+  const S = 512, c = cvs(S, S), g = c.getContext('2d'), r = rng(42);
+  g.fillStyle = '#8a8a8a'; g.fillRect(0, 0, S, S);
+  for (let y = 0; y < S; y++) { const v = 100 + r() * 90 | 0; g.fillStyle = `rgba(${v},${v},${v},.55)`; g.fillRect(0, y, S, 1); }
+  for (let i = 0; i < 900; i++) { const v = r() < .5 ? 60 : 200; g.fillStyle = `rgba(${v},${v},${v},${.08 + r() * .15})`; g.fillRect(r() * S, r() * S, 30 + r() * 220, 1); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2); return TEX.brushed = t;
+}
+function woodTex(base, dark, seed = 11) {
+  const k = 'wood' + base; if (TEX[k]) return TEX[k];
+  const W = 1024, H = 1024, c = cvs(W, H), g = c.getContext('2d'), r = rng(seed + base.length * 31 + parseInt(base.slice(1), 16) % 997);
+  g.fillStyle = base; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 46; i++) { g.globalAlpha = .03 + r() * .07; g.fillStyle = r() < .55 ? dark : '#ffffff'; g.fillRect(0, r() * H, W, 8 + r() * 70); }
+  g.strokeStyle = dark;
+  for (let i = 0; i < 520; i++) {
+    const y = r() * H, amp = 1.5 + r() * 6, fr = .0015 + r() * .006, ph = r() * 6;
+    g.globalAlpha = .04 + r() * .22; g.lineWidth = .4 + r() * 1.9; g.beginPath(); g.moveTo(0, y);
+    for (let x = 0; x <= W; x += 12) g.lineTo(x, y + Math.sin(x * fr + ph) * amp + Math.sin(x * fr * 3.3 + ph) * amp * .3);
+    g.stroke();
+  }
+  for (let k2 = 0; k2 < 5; k2++) {
+    const cx = r() * W, cy = r() * H;
+    for (let j = 0; j < 12; j++) { g.globalAlpha = .05; g.lineWidth = 1.2; g.beginPath(); g.ellipse(cx, cy, 70 + j * 16, 9 + j * 5, 0, 0, PI * 2); g.stroke(); }
+  }
+  g.globalAlpha = .22; g.fillStyle = dark;
+  for (let i = 0; i < 7000; i++) g.fillRect(r() * W, r() * H, 1 + r() * 4, .7);
+  g.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return TEX[k] = t;
+}
+/* perforated steel: white = solid, black = hole (alphaMap). Banded pattern per blueprint ("selected perforation design") */
+function perfTex(wmm, hmm, margin = 34) {
+  const k = `perf${wmm}x${hmm}`; if (TEX[k]) return TEX[k];
+  const s = Math.min(2, 1024 / Math.max(wmm, hmm)), W = Math.round(wmm * s), H = Math.round(hmm * s);
+  const c = cvs(W, H), g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.fillStyle = '#1a1a1a';
+  const pitch = 8, dia = 4.6, band = 6, gap = 14;
+  let row = 0;
+  for (let y = margin; y < hmm - margin; ) {
+    for (let b = 0; b < band && y < hmm - margin; b++, row++, y += pitch * .866) {
+      const off = row % 2 ? pitch / 2 : 0;
+      for (let x = margin + off; x < wmm - margin; x += pitch) { g.beginPath(); g.arc(x * s, y * s, dia / 2 * s, 0, PI * 2); g.fill(); }
+    }
+    y += gap;
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return TEX[k] = t;
+}
+function textTex(lines, w, h, opts = {}) {
+  const c = cvs(w, h), g = c.getContext('2d');
+  if (opts.bg) { g.fillStyle = opts.bg; g.fillRect(0, 0, w, h); }
+  g.textAlign = opts.align || 'center'; g.textBaseline = 'middle';
+  for (const L of lines) { g.fillStyle = L.color || '#222'; g.font = L.font; if (L.ls) g.letterSpacing = L.ls; g.fillText(L.text, L.x ?? w / 2, L.y ?? h / 2); g.letterSpacing = '0px'; }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+function decal(tex, w, h, opts = {}) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: opts.rough ?? .6, metalness: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+  m.renderOrder = 2; return m;
+}
+
+/* ============================== MATERIAL LIBRARY ============================== */
+/* Finish families used by commercial furniture / locker manufacturers (HPL & compact laminate decors, FENIX NTM,
+   real-wood & woodgrain, melamine (Polykem) carcass, RAL powder-coat on steel, and architectural metal finishes). */
+const LIB = {
+  hpl: { label: 'HPL Laminate', spec: 'High-pressure laminate 0.8–1.2 mm on KD board, or 12–18 mm compact grade. Satin "suede" texture, scratch & impact resistant — standard for lockers and office carcass.', base: { rough: .5, peel: true },
+    items: [['Polar White', '#eeede8', 'HPL W-101'], ['Arctic Grey', '#c8c9ca', 'HPL G-210'], ['Dove Grey', '#a3a19c', 'HPL G-240'], ['Anthracite', '#3c3e41', 'HPL G-290'], ['Jet Black', '#1d1d1e', 'HPL B-300'], ['Midnight Navy', '#23324a', 'HPL U-512'], ['Sage', '#8c9a85', 'HPL U-640'], ['Terracotta', '#b5674c', 'HPL U-322'], ['Mustard', '#cf9f3c', 'HPL U-161'], ['Signal Red', '#b81f2a', 'HPL U-321']] },
+  fenix: { label: 'FENIX NTM® Super-matt', spec: 'Nano-tech acrylic resin surface: super-matt, anti-fingerprint, thermally healable micro-scratches, low light reflectivity. Premium desk tops & fronts.', base: { rough: .93 },
+    items: [['Bianco Kos', '#e8e5de', '0032'], ['Bianco Alaska', '#f0eee9', '0029'], ['Beige Luxor', '#c9b89e', '0717'], ['Grigio Efeso', '#b1ada5', '0718'], ['Grigio Londra', '#8c8b87', '0725'], ['Verde Comodoro', '#5e6552', '0751'], ['Blu Fes', '#2f3c4f', '0750'], ['Rosso Jaipur', '#8e3c35', '0753'], ['Nero Ingo', '#2a2a2b', '0720']] },
+  wood: { label: 'Woodgrain / Veneer', spec: 'Real-wood veneer (lacquered) or synchronised-pore woodgrain HPL. Grain runs along the long edge of each panel.', base: { rough: .55, clearcoat: .2, ccr: .45 },
+    items: [['Scandi Birch', '#e2cdab', 'WG-01', '#b49870'], ['Light Ash', '#d8c4a1', 'WG-04', '#a68d69'], ['Natural Oak', '#c7a277', 'WG-11', '#86613a'], ['Teak', '#9b6a3d', 'WG-22', '#5c3b1e'], ['Smoked Oak', '#705b48', 'WG-31', '#3e3024'], ['American Walnut', '#6a4934', 'WG-40', '#382416'], ['Black Ash', '#3a3633', 'WG-55', '#1b1918']] },
+  melamine: { label: 'Polykem / Melamine', spec: 'Low-pressure melamine faced board (Polykem) for internal carcass, shelves and partitions — hygienic, easy-clean.', base: { rough: .55 },
+    items: [['White Polykem', '#f2f2ee', 'PK-W01'], ['Light Grey Polykem', '#cfcfcb', 'PK-G12'], ['Black Polykem', '#242425', 'PK-B90']] },
+  powder: { label: 'Powder-coat Steel (RAL)', spec: 'Electrostatic epoxy-polyester powder coat on cold-rolled steel (60–80 µm), fine-texture or satin. Frames, perforated panels and cabinets.', base: { rough: .6, clearcoat: .15, ccr: .6, peel: true },
+    items: [['RAL 9016 Traffic White', '#f0efe9', '9016'], ['RAL 9010 Pure White', '#f1ede1', '9010'], ['RAL 7035 Light Grey', '#c9cec9', '7035'], ['RAL 9006 White Aluminium', '#a6a9a8', '9006', null, { metal: .65, rough: .42 }], ['RAL 9007 Grey Aluminium', '#8d8c88', '9007', null, { metal: .65, rough: .45 }], ['RAL 7016 Anthracite', '#383e42', '7016'], ['RAL 9005 Jet Black', '#0f0f11', '9005'], ['RAL 5003 Sapphire', '#1f3855', '5003'], ['RAL 3020 Traffic Red', '#bf1622', '3020']] },
+  metal: { label: 'Metal Finish', spec: 'Architectural metal: #4 brushed stainless, polished chrome, PVD/anodised aluminium and satin brass. Handles, hardware and columns.', base: { metal: 1, rough: .3 },
+    items: [['Brushed Stainless #4', '#c6c9cc', 'SS304', null, { brushed: true, rough: .34 }], ['Polished Chrome', '#eceef0', 'CR', null, { rough: .07 }], ['Satin Nickel', '#bdb8ad', 'SN', null, { brushed: true, rough: .32 }], ['Satin Brass', '#c9a55a', 'BR', null, { brushed: true, rough: .3 }], ['Champagne Anodised', '#cbb995', 'AN-C', null, { rough: .36 }], ['Gunmetal PVD', '#4b4e53', 'PVD-G', null, { rough: .32 }], ['Black Anodised', '#232427', 'AN-B', null, { metal: .9, rough: .45 }]] },
+};
+const FIN = {};
+for (const [cat, L] of Object.entries(LIB)) {
+  L.list = L.items.map(([name, color, code, dark, ov]) => {
+    const f = { id: cat + ':' + name, cat, name, color, code, dark, metal: 0, rough: .5, clearcoat: 0, ccr: .3, ...L.base, ...(ov || {}) };
+    if (cat === 'wood') f.wood = true;
+    return FIN[f.id] = f;
+  });
+}
+const PARTS = {};
+function defPart(key, label, cats, def) { PARTS[key] = { key, label, cats, def, mats: [], current: null, onChange: [] }; }
+function partMat(key, extra = {}) { const m = new THREE.MeshPhysicalMaterial({ color: 0xffffff, ...extra }); PARTS[key].mats.push(m); return m; }
+function setFinish(m, f) {
+  m.metalness = f.metal; m.roughness = f.rough; m.clearcoat = f.clearcoat || 0; m.clearcoatRoughness = f.ccr ?? .3;
+  if (f.wood) { m.map = woodTex(f.color, f.dark); m.color.set('#ffffff'); } else { m.map = m.userData.perf || null; m.color.set(f.color); }
+  m.roughnessMap = f.brushed ? brushedTex() : null;
+  m.bumpMap = f.brushed ? brushedTex() : m.userData.perf ? m.userData.perf : (f.peel ? noiseTex('peel', 256, 100, 160, 8) : null);
+  m.bumpScale = f.brushed ? .6 : m.userData.perf ? 1.5 : .35;
+  m.needsUpdate = true;
+}
+function applyFinish(key, id) {
+  const p = PARTS[key], f = FIN[id]; if (!p || !f) return;
+  p.current = f; for (const m of p.mats) setFinish(m, f); p.onChange.forEach(fn => fn(f));
+}
+const lum = hex => { const c = new THREE.Color(hex); return .2126 * c.r + .7152 * c.g + .0722 * c.b; };
+const swatchCSS = f => f.wood ? `url(${woodTex(f.color, f.dark).image.toDataURL('image/jpeg', .6)})` : f.cat === 'metal' || f.metal > .5 ? `linear-gradient(135deg, ${f.color} 0%, #fff8 38%, ${f.color} 55%, #0003 100%)` : f.color;
+
+// fixed (non-configurable) materials
+const M = {
+  edge: new THREE.MeshPhysicalMaterial({ color: 0x1b1a19, roughness: .55 }),                    // phenolic black core of compact laminate
+  glass: new THREE.MeshPhysicalMaterial({ color: 0x050607, roughness: .05, metalness: 0, clearcoat: 1, clearcoatRoughness: .02 }),
+  rubber: new THREE.MeshStandardMaterial({ color: 0x151515, roughness: .9 }),
+  plastic: new THREE.MeshStandardMaterial({ color: 0x1e1f22, roughness: .55 }),
+  plasticGrey: new THREE.MeshStandardMaterial({ color: 0x9a9da1, roughness: .5 }),
+  steel: new THREE.MeshPhysicalMaterial({ color: 0xc4c7ca, metalness: 1, roughness: .32 }),
+  zinc: new THREE.MeshPhysicalMaterial({ color: 0xb8bcc0, metalness: 1, roughness: .45 }),
+  yellow: new THREE.MeshPhysicalMaterial({ color: 0xe6b422, metalness: .7, roughness: .35 }),
+  pcb: new THREE.MeshStandardMaterial({ color: 0x0f5a35, roughness: .45 }),
+  chip: new THREE.MeshStandardMaterial({ color: 0x111214, roughness: .4 }),
+  gold: new THREE.MeshPhysicalMaterial({ color: 0xd9b24a, metalness: 1, roughness: .25 }),
+  copper: new THREE.MeshPhysicalMaterial({ color: 0xc27a43, metalness: 1, roughness: .3 }),
+  relay: new THREE.MeshStandardMaterial({ color: 0x1d4fb8, roughness: .4 }),
+  term: new THREE.MeshStandardMaterial({ color: 0x2f8a3a, roughness: .5 }),
+  alu: new THREE.MeshPhysicalMaterial({ color: 0xb7babd, metalness: 1, roughness: .38 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: .7 }),
+  bezel: new THREE.MeshPhysicalMaterial({ color: 0x141518, roughness: .35, clearcoat: .6 }),
+  monitor: new THREE.MeshStandardMaterial({ color: 0x17181a, roughness: .55 }),
+};
+const wireMats = ['#c0262d', '#151515', '#1f5fbf', '#e0b320', '#f2f2f2', '#2c9a48'].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: .45 }));
+const ledMat = (c) => new THREE.MeshStandardMaterial({ color: 0x111111, emissive: new THREE.Color(c), emissiveIntensity: 2.2, roughness: .3, toneMapped: false });
+
+/* ---------- explode registry ---------- */
+const EX = [];      // {g, off:Vector3, product}
+const LABELS = [];  // {obj, product}
+let explodeT = 0, explodeTarget = 0;
+function exGroup(parent, off, product, label, lpos) {
+  const g = new THREE.Group(); parent.add(g);
+  EX.push({ g, off: new THREE.Vector3(...off), product });
+  if (label) addLabel(g, label, lpos, product);
+  return g;
+}
+function addLabel(parent, text, pos, product) {
+  const el = document.createElement('div'); el.className = 'tag';
+  const [a, b] = text.split('|'); el.innerHTML = `<i></i><div>${a}${b ? `<small>${b}</small>` : ''}</div>`;
+  const o = new CSS2DObject(el); o.position.set(...pos); parent.add(o); o.visible = false;
+  LABELS.push({ obj: o, el, product });
+}
+
+/* ============================== PRODUCT 1 — BLOCKS SMART LOCKSET ============================== */
+defPart('body', 'Carcass', ['hpl', 'fenix', 'wood'], 'hpl:Polar White');
+defPart('doors', 'Door panels', ['hpl', 'fenix', 'wood'], 'wood:Natural Oak');
+defPart('lid', 'Top lid', ['hpl', 'fenix'], 'fenix:Nero Ingo');
+defPart('interior', 'Internal carcass', ['melamine'], 'melamine:White Polykem');
+defPart('handle', 'Handle & hardware', ['metal', 'powder'], 'metal:Brushed Stainless #4');
+
+const L = { W: .6, D: .45, H: .45, R: .05, T: .018 };
+const lock = { group: null, lockers: [], selected: 1, busy: false, lidOpen: false, trayUp: false, handleOpt: 1, hingeOpt: 1, screen: null, screenMode: 'idle', screenT: 0, screenData: {} };
+
+function arcPts(cx, cz, r, a0, a1, n = 18) { const p = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; p.push([cx + r * Math.cos(a), cz + r * Math.sin(a)]); } return p; }
+function roundRect(w, d, r, n = 18) {
+  const hx = w / 2 - r, hz = d / 2 - r;
+  return [...arcPts(-hx, hz, r, PI / 2, PI, n), ...arcPts(-hx, -hz, r, PI, 1.5 * PI, n), ...arcPts(hx, -hz, r, 1.5 * PI, 2 * PI, n), ...arcPts(hx, hz, r, 0, PI / 2, n)];
+}
+const toShapeV = pts => pts.map(([x, z]) => new THREE.Vector2(x, -z));
+function plateFromPlan(pts, thick, holes = []) {   // extrude a plan outline upward (y)
+  const s = new THREE.Shape(toShapeV(pts)); holes.forEach(h => s.holes.push(new THREE.Path(toShapeV(h))));
+  const g = new THREE.ExtrudeGeometry(s, { depth: thick, bevelEnabled: false, curveSegments: 1 }); g.rotateX(-PI / 2); return g;
+}
+
+function buildLockset() {
+  const root = new THREE.Group(); root.name = 'lockset';
+  const { W, D, H, R, T } = L;
+  const mBody = partMat('body'), mDoor = partMat('doors'), mLid = partMat('lid'), mInt = partMat('interior'), mHandle = partMat('handle');
+  const hw = W / 2, hd = D / 2;
+
+  /* --- outer carcass: KD panels wrapped on 4×50R corners, 500 mm front opening --- */
+  const shellG = exGroup(root, [0, 0, -.06], 'lockset', 'KD panel carcass|HPL finish · 4 × 50R corners', [-hw - .02, .3, -.05]);
+  const cx = hw - R, cz = hd - R, ri = R - T;
+  const outer = [...arcPts(-cx, cz, R, PI / 2, PI, 20), ...arcPts(-cx, -cz, R, PI, 1.5 * PI, 20), ...arcPts(cx, -cz, R, 1.5 * PI, 2 * PI, 20), ...arcPts(cx, cz, R, 0, PI / 2, 20)];
+  const inner = [...arcPts(cx, cz, ri, PI / 2, 0, 20), ...arcPts(cx, -cz, ri, 2 * PI, 1.5 * PI, 20), ...arcPts(-cx, -cz, ri, 1.5 * PI, PI, 20), ...arcPts(-cx, cz, ri, PI, PI / 2, 20)];
+  const shell = new THREE.Mesh(plateFromPlan([...outer, ...inner], H - .0005), mBody); shadows(shell); shellG.add(shell);
+  // concealed 50 mm wire compartments (side partitions) + back lining — white Polykem internal carcass
+  const intG = exGroup(root, [0, 0, -.06], 'lockset', 'Internal carcass|White Polykem', [-.13, .26, -.2]);
+  for (const s of [-1, 1]) {
+    intG.add(at(box(.012, H - .019, D - 2 * T - .004, mInt), s * (hw - R + .006), .0185 + (H - .019) / 2, -.001));
+  }
+  intG.add(at(box(W - 2 * R, H - .019, .006, mInt), 0, .0185 + (H - .019) / 2, -hd + T + .003));
+  intG.add(at(box(W - 2 * R - .024, .006, D - 2 * T - .006, mInt), 0, .021, 0));                  // floor
+  intG.add(at(box(.012, .308, D - 2 * T - .012, mInt), 0, .024 + .154, 0));                        // centre divider
+  intG.add(at(box(W - 2 * R - .024, .012, D - 2 * T - .012, mInt), 0, .175, 0));                   // row divider
+  intG.add(at(box(W - 2 * R - .024, .018, D - 2 * T - .006, mInt), 0, .341, 0));                   // tech compartment floor
+  // wire compartment label marker
+  addLabel(intG, '50 mm concealed wire compartment|both sides', [hw - .025, .06, .16], 'lockset');
+
+  /* --- base plinth --- */
+  const baseG = exGroup(root, [0, -.13, 0], 'lockset');
+  const base = new THREE.Mesh(plateFromPlan(roundRect(W - .002, D - .002, R - .001), .018), mBody); base.position.y = -.0002; shadows(base); baseG.add(base);
+  for (const [x, z] of [[-.24, -.17], [.24, -.17], [-.24, .17], [.24, .17]]) baseG.add(at(cyl(.012, .006, M.rubber), x, -.003, z));
+
+  /* --- front fascia with engraved BLOCKS mark --- */
+  const fasG = exGroup(root, [0, .02, .3], 'lockset');
+  const fas = new THREE.Mesh(new THREE.BoxGeometry(.497, .115, .012), [M.edge, M.edge, M.edge, M.edge, mBody, mBody]); shadows(fas);
+  at(fas, 0, .391, hd - .006); fasG.add(fas);
+  const blocksTex = c => textTex([{ text: 'BLOCKS', font: '800 92px Manrope, Arial, sans-serif', color: c, ls: '22px', y: 70 }, { text: 'SMART LOCKSET  ·  VCOP', font: '600 30px Manrope, Arial, sans-serif', color: c, ls: '8px', y: 150 }], 1024, 200);
+  const fasDecal = decal(blocksTex('#2a2a2a'), .22, .043); at(fasDecal, 0, .392, hd + .0004); fasG.add(fasDecal);
+  PARTS.body.onChange.push(f => { fasDecal.material.map = blocksTex(lum(f.color) > .45 && !f.wood ? 'rgba(25,25,25,.78)' : 'rgba(255,255,255,.85)'); fasDecal.material.needsUpdate = true; });
+
+  /* --- 4 lockers: doors, BLOCKS locks, C-hooks, hinges --- */
+  const cols = [{ side: -1, x0: -.2485, x1: -.0015 }, { side: 1, x0: .0015, x1: .2485 }];
+  const rows = [{ y0: .1765, y1: .3305 }, { y0: .0225, y1: .1735 }];
+  const numTex = (n, c) => textTex([{ text: n, font: '700 84px "JetBrains Mono", monospace', color: c }], 256, 128);
+  const doorT = .012, doorZ = hd - doorT / 2;
+  let n = 0;
+  for (const rw of rows) for (const cl of cols) {
+    n++;
+    const nn = n;
+    const i = n - 1, side = cl.side, w = cl.x1 - cl.x0, h = rw.y1 - rw.y0, cxD = (cl.x0 + cl.x1) / 2, cyD = (rw.y0 + rw.y1) / 2;
+    const doorEx = exGroup(root, [side * .06, (rw.y0 > .17 ? .04 : -.04), .3], 'lockset', i === 1 ? "HPL door panel|with 'C' hook catch" : null, [side * .04, cyD + .1, hd + .02]);
+    const pivot = new THREE.Group(); doorEx.add(pivot);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(w, h, doorT), [M.edge, M.edge, M.edge, M.edge, mDoor, mDoor]); shadows(door);
+    door.userData.action = { t: 'door', i }; pivot.add(door);
+    // LED status pip + engraved number + finger pull (latch side = toward centre)
+    const latchX = -side * (w / 2);
+    const led = ledMat('#ff3b30'); const pip = new THREE.Mesh(new THREE.CylinderGeometry(.0032, .0032, .002, 20), led); pip.rotation.x = PI / 2; at(pip, latchX - (-side) * .02, h / 2 - .022, doorT / 2 + .0005); door.add(pip);
+    const num = decal(numTex('0' + n, 'rgba(30,30,30,.8)'), .036, .018); at(num, -latchX + (-side) * .034, h / 2 - .02, doorT / 2 + .0006); door.add(num);
+    PARTS.doors.onChange.push(f => { num.material.map = numTex('0' + nn, lum(f.color) > .45 ? 'rgba(25,25,25,.75)' : 'rgba(255,255,255,.85)'); num.material.needsUpdate = true; });
+    const pull = box(.0035, .06, .0012, M.plastic); at(pull, latchX - (-side) * .012, 0, doorT / 2 + .0002); door.add(pull);
+    // 'C' hook on the back of the door
+    const hookPath = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, -doorT / 2), new THREE.Vector3(0, 0, -.02), new THREE.Vector3(0, -.006, -.029), new THREE.Vector3(0, -.014, -.027), new THREE.Vector3(0, -.016, -.02)]);
+    const hook = new THREE.Mesh(new THREE.TubeGeometry(hookPath, 24, .0022, 10, false), M.steel); hook.castShadow = true;
+    const hookX = latchX - (-side) * .0195;
+    hook.position.set(hookX, 0, 0); door.add(hook);
+    door.add(at(box(.014, .032, .003, M.steel), hookX, -.004, -doorT / 2 - .0015));
+    // door-side hinge leaves (Option 1)
+    const leaves = [];
+    for (const yy of [h / 2 - .028, -h / 2 + .028]) { const lf = box(.018, .026, .0025, M.zinc); at(lf, side * (w / 2 - .012), yy, -doorT / 2 - .0013); door.add(lf); leaves.push(lf); }
+
+    // BLOCKS lock body on the centre divider
+    const lockEx = exGroup(root, [side * .015, 0, .17], 'lockset', i === 0 ? 'BLOCKS lockset|electronic latch · bolt + status LED' : null, [-.05, cyD + .05, .2]);
+    const lx = side * .006;   // divider face
+    const housing = rbox(.011, .078, .07, .002, M.plastic); at(housing, lx + side * .0055, cyD, .168); lockEx.add(housing);
+    const capT = box(.03, .004, .03, M.zinc); at(capT, lx + side * .015, cyD + .012, .19); lockEx.add(capT);
+    const capB = box(.03, .004, .03, M.zinc); at(capB, lx + side * .015, cyD - .028, .19); lockEx.add(capB);
+    const bolt = cyl(.0028, .02, M.yellow, 16); bolt.rotation.z = PI / 2;
+    const boltRest = lx + side * .018; at(bolt, boltRest, cyD - .007, .197); lockEx.add(bolt);
+    const lockLed = ledMat('#ff3b30'); lockEx.add(at(new THREE.Mesh(new THREE.SphereGeometry(.0022, 12, 8), lockLed), lx + side * .0115, cyD + .028, .203));
+    const lbl = decal(textTex([{ text: 'BLOCKS', font: '800 56px Manrope, Arial, sans-serif', color: '#e8e8e8', ls: '6px' }], 256, 64), .05, .0125);
+    lbl.rotation.y = side * PI / 2; lbl.rotation.z = side * PI / 2; at(lbl, lx + side * .0112, cyD - .005, .16); lockEx.add(lbl);
+
+    // static hinge parts (Option 1 knuckles, Option 2 pins)
+    const hx = side < 0 ? cl.x0 : cl.x1;
+    const knuckles = [], pins = [];
+    for (const yy of [rw.y1 - .028, rw.y0 + .028]) { const k = cyl(.0042, .026, M.zinc, 16); at(k, hx, yy, hd + .001); doorEx.add(k); knuckles.push(k); }
+    for (const yy of [rw.y1 + .0025, rw.y0 - .0025]) { const p = cyl(.0035, .006, M.steel, 16); at(p, hx - side * .012, yy, doorZ); doorEx.add(p); pins.push(p); }
+
+    lock.lockers.push({ i, n, side, w, h, cx: cxD, cy: cyD, hx, pivot, door, bolt, boltRest, led, lockLed, leaves, knuckles, pins, angle: 0, open: false, unlocked: false });
+  }
+
+  /* --- wiring from each lock to the lockboard --- */
+  const wiresG = exGroup(root, [0, .08, .08], 'lockset');
+  lock.lockers.forEach((lk, k) => {
+    const s = lk.side, pts = [[s * .012, lk.cy - .02, .14], [s * .012, lk.cy - .02, .08], [s * .012, .3, .03], [s * .02, .35, -.02], [-.05 + s * .03, .37, -.03]];
+    const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)));
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(c, 40, .0016, 6), wireMats[k]); wiresG.add(tube);
+  });
+
+  /* --- tech compartment tray: lockboard PCB + PSU + extra wiring (100 mm) --- */
+  const trayEx = exGroup(root, [0, .2, 0], 'lockset', 'Tech compartment (100 mm)|Lockboard · PCB · extra wiring', [.12, .48, .1]);
+  const tray = new THREE.Group(); trayEx.add(tray); lock.tray = tray;
+  const tw = .47, td = .39, th = .09, y0 = .35;
+  tray.add(at(box(tw, .004, td, mInt), 0, y0 + .002, 0));
+  for (const s of [-1, 1]) { tray.add(at(box(tw, th, .006, mInt), 0, y0 + th / 2, s * (td / 2 - .003))); tray.add(at(box(.006, th, td - .012, mInt), s * (tw / 2 - .003), y0 + th / 2, 0)); }
+  for (const s of [-1, 1]) tray.add(at(rbox(.07, .022, .008, .008, M.black), 0, y0 + th - .022, s * (td / 2 - .0005)));   // hand slots
+  // PCB lockboard
+  const pcb = new THREE.Group(); pcb.position.set(-.05, y0 + .02, -.03); tray.add(pcb);
+  for (const [x, z] of [[-.08, -.05], [.08, -.05], [-.08, .05], [.08, .05]]) pcb.add(at(cyl(.003, .016, M.alu, 10), x, -.008, z));
+  pcb.add(at(box(.18, .0016, .115, M.pcb), 0, 0, 0));
+  pcb.add(at(box(.022, .003, .022, M.chip), -.02, .002, -.01));
+  const pcbLbl = decal(textTex([{ text: 'VCOP LOCKBOARD v2', font: '700 40px "JetBrains Mono", monospace', color: '#e9f3ec' }], 512, 64), .07, .009); pcbLbl.rotation.x = -PI / 2; at(pcbLbl, -.03, .0011, .045); pcb.add(pcbLbl);
+  for (let k = 0; k < 4; k++) { pcb.add(at(box(.015, .012, .019, M.relay), -.065 + k * .024, .007, -.04)); pcb.add(at(box(.016, .009, .009, M.term), -.065 + k * .024, .0055, .051)); }
+  for (let k = 0; k < 3; k++) pcb.add(at(box(.008, .0025, .006, M.chip), .025 + k * .012, .0018, .005));
+  for (let a = 0; a < 2; a++) for (let b = 0; b < 10; b++) pcb.add(at(box(.0012, .006, .0012, M.gold), .02 + b * .0026, .003, -.03 + a * .0026));
+  pcb.add(at(box(.016, .013, .02, M.alu), .078, .0075, .0));
+  const pcbLed = ledMat('#28e070'); pcb.add(at(new THREE.Mesh(new THREE.SphereGeometry(.0018, 10, 8), pcbLed), .05, .0025, .03));
+  lock.pcbLed = pcbLed;
+  // PSU + comms board
+  const psu = rbox(.105, .034, .062, .003, M.alu); at(psu, .13, y0 + .021, -.1); tray.add(psu);
+  const psuL = decal(textTex([{ text: '12V DC · 60W', font: '700 46px "JetBrains Mono", monospace', color: '#333' }], 512, 80), .06, .009); psuL.rotation.x = -PI / 2; at(psuL, .13, y0 + .0385, -.1); tray.add(psuL);
+  const comm = box(.06, .0016, .045, M.pcb); at(comm, .13, y0 + .012, .07); tray.add(comm);
+  tray.add(at(box(.012, .006, .012, M.alu), .15, y0 + .016, .07));
+  { const coilW = new THREE.Mesh(new THREE.TorusGeometry(.024, .0025, 8, 30), wireMats[1]); coilW.rotation.x = PI / 2; tray.add(at(coilW, .02, y0 + .007, .12)); }
+  const c2 = new THREE.CatmullRomCurve3([[.16, y0 + .014, .08], [.21, y0 + .03, .06], [.23, y0 - .02, .03], [.23, .2, .02]].map(p => new THREE.Vector3(...p)));
+  tray.add(new THREE.Mesh(new THREE.TubeGeometry(c2, 30, .0022, 6), wireMats[4]));
+
+  /* --- removable 18 mm compact laminate lid: Option 1 recessed handle / Option 2 metal rod --- */
+  const lidEx = exGroup(root, [0, .38, 0], 'lockset', '18 mm compact laminate lid|phenolic core · removable', [0, .5, -.12]);
+  const lidG = new THREE.Group(); lidG.position.set(0, H, -hd); lidEx.add(lidG); lock.lid = lidG;
+  const slot = (x0) => { const p = []; const r = .013; p.push(...arcPts(x0 - .028, 0, r, PI / 2, 1.5 * PI, 10), ...arcPts(x0 + .028, 0, r, -PI / 2, PI / 2, 10)); return p; };
+  const lidA = new THREE.Mesh(plateFromPlan(roundRect(W, D, R, 20), .018, [slot(-.046), slot(.046)]), [mLid, M.edge]); lidA.position.set(0, 0, hd); shadows(lidA);
+  const lidB = new THREE.Mesh(plateFromPlan(roundRect(W, D, R, 20), .018), [mLid, M.edge]); lidB.position.set(0, 0, hd); shadows(lidB);
+  lidA.userData.action = lidB.userData.action = { t: 'lid' };
+  lidG.add(lidA, lidB);
+  const rod = new THREE.Group(); rod.position.set(0, .018, hd); lidG.add(rod);
+  const cp = new THREE.CurvePath();
+  const V = (x, y) => new THREE.Vector3(x, y, 0);
+  cp.add(new THREE.LineCurve3(V(-.15, 0), V(-.15, .045))); cp.add(new THREE.QuadraticBezierCurve3(V(-.15, .045), V(-.15, .07), V(-.125, .07)));
+  cp.add(new THREE.LineCurve3(V(-.125, .07), V(.125, .07))); cp.add(new THREE.QuadraticBezierCurve3(V(.125, .07), V(.15, .07), V(.15, .045))); cp.add(new THREE.LineCurve3(V(.15, .045), V(.15, 0)));
+  rod.add(shadows(new THREE.Mesh(new THREE.TubeGeometry(cp, 80, .0075, 16), mHandle)));
+  rod.add(at(rbox(.36, .004, .05, .0018, mHandle), 0, .002, 0));
+  for (const s of [-1, 1]) rod.add(at(cyl(.012, .008, mHandle), s * .15, .006, 0));
+  lock.lidA = lidA; lock.lidB = lidB; lock.rod = rod;
+
+  /* --- iPad control panel (cut-out 115 × 95) + RFID reader on the right-hand side panel --- */
+  const ipadEx = exGroup(root, [.24, .02, 0], 'lockset', 'iPad control panel|cut-out 115 × 95 mm', [hw + .02, .38, .02]);
+  const ipad = rbox(.008, .106, .126, .006, M.bezel); at(ipad, hw - .002, .3, .02); ipad.userData.action = { t: 'face' }; ipadEx.add(ipad);
+  const sc = cvs(690, 572); lock.screen = { c: sc, g: sc.getContext('2d'), tex: new THREE.CanvasTexture(sc) };
+  lock.screen.tex.colorSpace = THREE.SRGBColorSpace; lock.screen.tex.anisotropy = 8;
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(.115, .095), new THREE.MeshPhysicalMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: lock.screen.tex, emissiveIntensity: 1.05, roughness: .08, clearcoat: 1, clearcoatRoughness: .03, toneMapped: false }));
+  scr.rotation.y = PI / 2; at(scr, hw + .0021, .3, .02); scr.userData.action = { t: 'face' }; ipadEx.add(scr);
+  const camLed = ledMat('#0a0a0a'); lock.camLed = camLed;
+  const camDot = new THREE.Mesh(new THREE.CircleGeometry(.0018, 16), camLed); camDot.rotation.y = PI / 2; at(camDot, hw + .0022, .3 + .0505, .02); ipadEx.add(camDot);
+
+  const rfidEx = exGroup(root, [.24, -.03, 0], 'lockset', 'RFID card reader|13.56 MHz MIFARE', [hw + .02, .1, .02]);
+  const rf = rbox(.007, .062, .074, .006, M.bezel); at(rf, hw - .001, .135, .02); rf.userData.action = { t: 'rfid' }; rfidEx.add(rf);
+  const ringMat = ledMat('#0aa6c8'); lock.ringMat = ringMat;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(.017, .0016, 10, 48), ringMat); ring.rotation.y = PI / 2; at(ring, hw + .0026, .135, .02); rfidEx.add(ring);
+  const nfc = decal(textTex([{ text: ')))', font: '700 120px Manrope, Arial, sans-serif', color: 'rgba(255,255,255,.75)' }], 256, 256), .016, .016); nfc.rotation.y = PI / 2; at(nfc, hw + .0027, .135, .02); rfidEx.add(nfc);
+  // reader antenna board behind (visible in explode)
+  const coil = new THREE.Mesh(new THREE.TorusGeometry(.022, .0012, 6, 40), M.copper); coil.rotation.y = PI / 2; at(coil, hw - .03, .135, .02); rfidEx.add(coil);
+  rfidEx.add(at(box(.0016, .06, .06, M.pcb), hw - .031, .135, .02));
+
+  /* --- RFID access card prop --- */
+  const cardTex = textTex([{ text: 'VCOP', font: '800 120px Manrope, Arial, sans-serif', color: '#fff', y: 120, ls: '10px' }, { text: 'ACCESS · BLOCKS', font: '600 40px Manrope, Arial, sans-serif', color: 'rgba(255,255,255,.7)', y: 200, ls: '6px' }, { text: '0042 7781', font: '500 44px "JetBrains Mono", monospace', color: 'rgba(255,255,255,.85)', y: 520 }], 400, 640, { bg: '#0a6f88' });
+  const cardMat = new THREE.MeshPhysicalMaterial({ map: cardTex, roughness: .35, clearcoat: .8 });
+  const card = new THREE.Mesh(new RoundedBoxGeometry(.0009, .086, .054, 2, .0004), [cardMat, M.plasticGrey, M.plasticGrey, M.plasticGrey, M.plasticGrey, M.plasticGrey]);
+  card.visible = false; card.castShadow = true; root.add(card); lock.card = card;
+
+  setHandleOpt(1, root); setHingeOpt(1);
+  root.userData.camera = { iso: [1.22, .78, 1.4], front: [0, .32, 1.8], side: [1.8, .34, 0], top: [0, 1.9, .02], back: [-.8, .62, -1.55], target: [0, .24, 0], min: .45, max: 4 };
+  root.userData.contact = 1.05;
+  return root;
+}
+function setHandleOpt(o) {
+  lock.handleOpt = o;
+  lock.lidA.visible = o === 1; lock.lidB.visible = o === 2; lock.rod.visible = o === 2;
+}
+function setHingeOpt(o) {
+  lock.hingeOpt = o;
+  for (const lk of lock.lockers) {
+    const doorZ = L.D / 2 - .006;
+    const px = o === 1 ? lk.hx : lk.hx - lk.side * .012, pz = o === 1 ? L.D / 2 : doorZ;
+    lk.pivot.position.set(px, lk.cy, pz);
+    lk.door.position.set(lk.cx - px, 0, doorZ - pz);
+    lk.knuckles.forEach(k => k.visible = o === 1); lk.leaves.forEach(k => k.visible = o === 1); lk.pins.forEach(k => k.visible = o === 2);
+  }
+}
+
+/* ---------- iPad UI (drawn live) ---------- */
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+function drawScreen(t) {
+  const S = lock.screen; if (!S) return; const g = S.g, W = 690, H = 572, mode = lock.screenMode, d = lock.screenData;
+  const bgr = g.createLinearGradient(0, 0, W, H); bgr.addColorStop(0, '#0d1424'); bgr.addColorStop(1, '#101b2f'); g.fillStyle = bgr; g.fillRect(0, 0, W, H);
+  g.textBaseline = 'middle'; g.textAlign = 'left';
+  g.fillStyle = '#fff'; g.font = '800 30px Manrope, Arial, sans-serif'; g.letterSpacing = '5px'; g.fillText('BLOCKS', 32, 40); const bw = g.measureText('BLOCKS').width; g.letterSpacing = '0px';
+  g.fillStyle = '#6f8199'; g.font = '600 18px Manrope, Arial, sans-serif'; g.fillText('SMART LOCKER · VCOP', 32 + bw + 18, 42);
+  const now = new Date(); g.textAlign = 'right'; g.fillStyle = '#cfd8e6'; g.font = '600 22px "JetBrains Mono", monospace';
+  g.fillText(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), W - 32, 40);
+  g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(32, 72, W - 64, 2);
+  const cx = W / 2, cy = 300;
+  if (mode === 'idle') {
+    const tw = 300, th = 150;
+    lock.lockers.forEach((lk, k) => {
+      const x = 32 + (k % 2) * (tw + 26) + 4, y = 96 + Math.floor(k / 2) * (th + 18), sel = lock.selected === k;
+      rr(g, x, y, tw, th, 22); g.fillStyle = sel ? 'rgba(0,190,230,.16)' : 'rgba(255,255,255,.05)'; g.fill();
+      if (sel) { g.lineWidth = 4; g.strokeStyle = '#19c6ea'; g.stroke(); }
+      g.textAlign = 'left'; g.fillStyle = '#fff'; g.font = '700 54px "JetBrains Mono", monospace'; g.fillText('0' + lk.n, x + 24, y + 58);
+      g.fillStyle = lk.open ? '#36d67e' : '#ff5b52'; rr(g, x + 24, y + 98, 132, 34, 17); g.fill();
+      g.fillStyle = '#0b1220'; g.font = '800 17px Manrope, Arial, sans-serif'; g.textAlign = 'center'; g.fillText(lk.open ? 'OPEN' : 'LOCKED', x + 90, y + 116);
+      drawPadlock(g, x + tw - 62, y + 62, lk.open ? '#36d67e' : '#8fa0b8', lk.open);
+    });
+    g.textAlign = 'center'; g.fillStyle = '#8ea0b8'; g.font = '600 21px Manrope, Arial, sans-serif'; g.fillText('Tap card  ·  Look at camera  ·  Enter PIN', cx, H - 34);
+  } else if (mode === 'rfid') {
+    const p = (t * 1.6) % 1;
+    for (let k = 0; k < 3; k++) { const q = (p + k / 3) % 1; g.beginPath(); g.arc(cx, cy - 20, 50 + q * 120, 0, PI * 2); g.strokeStyle = `rgba(25,198,234,${(1 - q) * .8})`; g.lineWidth = 5; g.stroke(); }
+    g.fillStyle = '#19c6ea'; rr(g, cx - 46, cy - 80, 92, 120, 12); g.fill();
+    g.fillStyle = '#0b1220'; g.font = '800 26px Manrope, Arial, sans-serif'; g.textAlign = 'center'; g.fillText('ID', cx, cy - 20);
+    g.fillStyle = '#fff'; g.font = '700 30px Manrope, Arial, sans-serif'; g.fillText('Reading card…', cx, H - 90);
+    g.fillStyle = '#8ea0b8'; g.font = '600 20px Manrope, Arial, sans-serif'; g.fillText('Locker 0' + (lock.selected + 1), cx, H - 52);
+  } else if (mode === 'face') {
+    const prog = Math.min(1, d.prog || 0);
+    g.save(); g.beginPath(); g.ellipse(cx, cy - 10, 150, 185, 0, 0, PI * 2); g.clip();
+    const cam = g.createLinearGradient(0, cy - 200, 0, cy + 180); cam.addColorStop(0, '#3a4556'); cam.addColorStop(1, '#1b2230'); g.fillStyle = cam; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#5c6a80'; g.beginPath(); g.ellipse(cx, cy - 40, 72, 92, 0, 0, PI * 2); g.fill();               // head
+    g.beginPath(); g.ellipse(cx, cy + 190, 160, 110, 0, 0, PI * 2); g.fill();                                     // shoulders
+    g.fillStyle = '#4a576b'; g.fillRect(cx - 26, cy + 40, 52, 50);
+    const sy = cy - 190 + ((t * 220) % 380); g.fillStyle = 'rgba(25,198,234,.35)'; g.fillRect(0, sy - 3, W, 6);
+    const pts = [[-30, -60], [30, -60], [-34, -52], [34, -52], [0, -30], [-10, -10], [10, -10], [0, -6], [-26, 18], [0, 24], [26, 18], [-52, -40], [52, -40], [-44, 10], [44, 10], [0, 50]];
+    const show = Math.floor(prog * pts.length * 1.3);
+    g.fillStyle = '#7ff3ff'; pts.slice(0, show).forEach(([x, y]) => { g.beginPath(); g.arc(cx + x, cy - 40 + y, 4, 0, PI * 2); g.fill(); });
+    g.strokeStyle = 'rgba(127,243,255,.45)'; g.lineWidth = 1.5; g.beginPath();
+    for (let k = 1; k < Math.min(show, pts.length); k++) { g.moveTo(cx + pts[k - 1][0], cy - 40 + pts[k - 1][1]); g.lineTo(cx + pts[k][0], cy - 40 + pts[k][1]); } g.stroke();
+    g.restore();
+    g.beginPath(); g.ellipse(cx, cy - 10, 158, 193, 0, -PI / 2, -PI / 2 + PI * 2 * prog); g.strokeStyle = '#19c6ea'; g.lineWidth = 8; g.lineCap = 'round'; g.stroke();
+    g.fillStyle = '#fff'; g.font = '700 26px Manrope, Arial, sans-serif'; g.textAlign = 'center'; g.fillText(prog < 1 ? 'Face ID · hold still' : 'Match found', cx, H - 42);
+  } else if (mode === 'pin') {
+    const k = d.digits || 0; g.textAlign = 'center';
+    g.fillStyle = '#fff'; g.font = '700 26px Manrope, Arial, sans-serif'; g.fillText('Enter PIN · Locker 0' + (lock.selected + 1), cx, 112);
+    for (let j = 0; j < 4; j++) { g.beginPath(); g.arc(cx - 75 + j * 50, 162, 13, 0, PI * 2); g.fillStyle = j < k ? '#19c6ea' : 'rgba(255,255,255,.15)'; g.fill(); }
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
+    keys.forEach((kk, j) => { if (!kk) return; const x = cx - 150 + (j % 3) * 100, y = 230 + Math.floor(j / 3) * 78; const hot = d.hot === kk;
+      rr(g, x, y, 90, 64, 18); g.fillStyle = hot ? '#19c6ea' : 'rgba(255,255,255,.07)'; g.fill(); g.fillStyle = hot ? '#0b1220' : '#fff'; g.font = '600 30px "JetBrains Mono", monospace'; g.fillText(kk, x + 45, y + 33); });
+  } else if (mode === 'granted' || mode === 'denied') {
+    const ok = mode === 'granted', s = Math.min(1, (d.t || 0) * 4);
+    g.beginPath(); g.arc(cx, cy - 40, 92 * ease.back(s), 0, PI * 2); g.fillStyle = ok ? '#36d67e' : '#ff5b52'; g.fill();
+    g.strokeStyle = '#0b1220'; g.lineWidth = 16; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath();
+    if (ok) { g.moveTo(cx - 40, cy - 40); g.lineTo(cx - 10, cy - 10); g.lineTo(cx + 44, cy - 70); } else { g.moveTo(cx - 34, cy - 74); g.lineTo(cx + 34, cy - 6); g.moveTo(cx + 34, cy - 74); g.lineTo(cx - 34, cy - 6); }
+    g.stroke(); g.textAlign = 'center'; g.fillStyle = '#fff'; g.font = '800 38px Manrope, Arial, sans-serif';
+    g.fillText(ok ? 'Access granted' : 'Access denied', cx, cy + 110);
+    g.fillStyle = '#8ea0b8'; g.font = '600 22px Manrope, Arial, sans-serif'; g.fillText(d.msg || '', cx, cy + 156);
+  }
+  S.tex.needsUpdate = true;
+}
+function drawPadlock(g, x, y, col, open) {
+  g.strokeStyle = col; g.lineWidth = 7; g.beginPath(); g.arc(x, y - 18 - (open ? 10 : 0), 18, PI, 0); g.lineTo(x + 18, y - 4 - (open ? 10 : 0)); if (!open) { g.moveTo(x - 18, y - 18); g.lineTo(x - 18, y - 4); } g.stroke();
+  g.fillStyle = col; rr(g, x - 26, y - 6, 52, 40, 8); g.fill();
+}
+function screen(mode, data = {}) { lock.screenMode = mode; lock.screenData = data; drawScreen(performance.now() / 1000); }
+
+/* ---------- lockset mechanics ---------- */
+const setLED = (m, c) => m.emissive.set(c);
+async function swingDoor(lk, to, dur) {
+  const from = lk.angle;
+  await tween(dur, e => { lk.angle = lerp(from, to, e); lk.pivot.rotation.y = lk.side < 0 ? -lk.angle : lk.angle; }, to > from ? ease.out : ease.in);
+}
+async function moveBolt(lk, retract) {
+  const a = lk.bolt.position.x, b = retract ? lk.boltRest - lk.side * .016 : lk.boltRest;
+  await tween(.22, e => lk.bolt.position.x = lerp(a, b, e), ease.io);
+}
+async function unlockSeq(method) {
+  if (lock.busy) return; const lk = lock.lockers[lock.selected];
+  if (lk.open) { setStatus(`Locker 0${lk.n} is already open`, 'ok'); return; }
+  lock.busy = true; refreshDemo();
+  if (method === 'rfid' || method === 'deny') {
+    setStatus('Present card to the RFID reader…', 'busy'); screen('rfid');
+    const c = lock.card, R0 = new THREE.Vector3(L.W / 2 + .26, .2, .2), R1 = new THREE.Vector3(L.W / 2 + .012, .135, .02);
+    c.visible = true; c.position.copy(R0); c.rotation.set(0, 0, -.5);
+    await tween(.9, e => { c.position.lerpVectors(R0, R1, e); c.rotation.z = lerp(-.5, 0, e); }, ease.out);
+    sfx.beep(1500, .05, .05);
+    const t0 = performance.now(); while (performance.now() - t0 < 700) { setLED(lock.ringMat, (Math.floor((performance.now() - t0) / 120) % 2) ? '#0aa6c8' : '#0d4a5c'); await wait(40); }
+    if (method === 'deny') {
+      setLED(lock.ringMat, '#ff3b30'); sfx.deny(); screen('denied', { msg: 'Card not registered' }); setStatus('Unregistered card — access denied', 'bad');
+      await tween(.7, e => c.position.lerpVectors(R1, R0, e), ease.in); c.visible = false;
+      await wait(1100); setLED(lock.ringMat, '#0aa6c8'); screen('idle'); lock.busy = false; refreshDemo(); return;
+    }
+    setLED(lock.ringMat, '#25e07a');
+    tween(.7, e => c.position.lerpVectors(R1, R0, e), ease.in).then(() => c.visible = false);
+  } else if (method === 'face') {
+    setStatus('Face recognition — scanning…', 'busy'); setLED(lock.camLed, '#19c6ea');
+    lock.screenMode = 'face'; lock.screenData = { prog: 0 };
+    await tween(2.2, e => lock.screenData.prog = e, ease.lin);
+    setLED(lock.camLed, '#0a0a0a');
+  } else if (method === 'pin') {
+    setStatus('PIN entry on the control panel…', 'busy'); screen('pin', { digits: 0 });
+    for (const k of ['2', '4', '0', '7']) { lock.screenData.hot = k; drawScreen(0); sfx.beep(900, .03, .04); await wait(260); lock.screenData.digits++; lock.screenData.hot = null; drawScreen(0); await wait(140); }
+  }
+  screen('granted', { msg: `Locker 0${lk.n} unlocked`, t: 0 }); sfx.chime();
+  setLED(lock.pcbLed, '#7ff3ff');
+  await moveBolt(lk, true); sfx.click(); lk.unlocked = true;
+  setLED(lk.lockLed, '#25e07a'); setLED(lk.led, '#25e07a');
+  setStatus(`Locker 0${lk.n} — bolt released, door opening`, 'ok');
+  await swingDoor(lk, 1.83, 1.25); lk.open = true;
+  setLED(lock.pcbLed, '#28e070'); setLED(lock.ringMat, '#0aa6c8');
+  await wait(600); screen('idle'); lock.busy = false; refreshDemo();
+}
+async function closeLocker(k = lock.selected) {
+  const lk = lock.lockers[k]; if (!lk.open || lock.busy) return; lock.busy = true; refreshDemo();
+  setStatus(`Closing locker 0${lk.n}…`, 'busy');
+  await swingDoor(lk, 0, .9); sfx.click();
+  await moveBolt(lk, false); lk.open = false; lk.unlocked = false;
+  setLED(lk.lockLed, '#ff3b30'); setLED(lk.led, '#ff3b30'); sfx.beep(700, .06, .05);
+  setStatus(`Locker 0${lk.n} closed — 'C' hook latched & locked`, 'ok'); screen('idle'); lock.busy = false; refreshDemo();
+}
+async function allLockers(open) {
+  if (lock.busy) return; lock.busy = true; refreshDemo();
+  setStatus(open ? 'Admin override — releasing all bolts' : 'Closing & locking all doors', 'busy');
+  await Promise.all(lock.lockers.map(async (lk, k) => {
+    await wait(k * 160);
+    if (open && !lk.open) { await moveBolt(lk, true); setLED(lk.lockLed, '#25e07a'); setLED(lk.led, '#25e07a'); sfx.click(); await swingDoor(lk, 1.83, 1.2); lk.open = true; }
+    if (!open && lk.open) { await swingDoor(lk, 0, .9); sfx.click(); await moveBolt(lk, false); setLED(lk.lockLed, '#ff3b30'); setLED(lk.led, '#ff3b30'); lk.open = false; }
+  }));
+  screen('idle'); setStatus(open ? 'All 4 lockers open' : 'All lockers secured', 'ok'); lock.busy = false; refreshDemo();
+}
+async function toggleLid() {
+  if (lock.busy) return; lock.busy = true; refreshDemo();
+  const open = !lock.lidOpen, g = lock.lid;
+  if (!open && lock.trayUp) await toggleTray(true);
+  setStatus(open ? 'Lifting the removable compact-laminate lid' : 'Refitting the lid', 'busy');
+  const y0 = g.position.y, z0 = g.position.z, r0 = g.rotation.x;
+  const H0 = L.H, Z0 = -L.D / 2;
+  await tween(1.1, e => { g.position.y = lerp(y0, open ? H0 + .08 : H0, e); g.position.z = lerp(z0, open ? Z0 - .06 : Z0, e); g.rotation.x = lerp(r0, open ? -.5 : 0, e); });
+  if (open && view === 'iso' && current === 'lockset') camTo(fitPos([1.0, 1.35, 1.2]));
+  lock.lidOpen = open; setStatus(open ? 'Tech compartment exposed — lockboard, PCB & wiring' : 'Lid closed', 'ok');
+  lock.busy = false; refreshDemo();
+}
+async function toggleTray(internal) {
+  if (!internal && lock.busy) return; if (!internal) lock.busy = true; refreshDemo();
+  if (!lock.lidOpen) { lock.busy = false; await toggleLid(); lock.busy = true; }
+  const up = !lock.trayUp, t = lock.tray, y0 = t.position.y;
+  await tween(1, e => t.position.y = lerp(y0, up ? .13 : 0, e));
+  lock.trayUp = up; if (!internal) { setStatus(up ? 'PCB tray raised for service' : 'PCB tray seated', 'ok'); lock.busy = false; } refreshDemo();
+}
+
+/* ============================== PRODUCT 2 — BNP PARIBAS TRADER DESK ============================== */
+defPart('top', 'Desk top', ['hpl', 'fenix', 'wood'], 'hpl:Polar White');
+defPart('frame', 'Frame & columns', ['powder', 'metal'], 'powder:RAL 9005 Jet Black');
+defPart('cabinet', 'Perforated cabinet', ['powder'], 'powder:RAL 9016 Traffic White');
+defPart('gable', 'End gables', ['powder', 'hpl', 'fenix', 'wood'], 'powder:RAL 9016 Traffic White');
+
+const DK = { min: .68, max: 1.25, speed: .055, monitors: 4, screensOn: true, pair: false, ctl: 0, desks: [] };
+const dmat = {};
+function deskMats() {
+  if (dmat.top) return dmat;
+  dmat.top = partMat('top'); dmat.frame = partMat('frame'); dmat.cab = partMat('cabinet');
+  dmat.gable = partMat('gable');
+  const perf = (w, h) => { const m = partMat('cabinet', { side: THREE.DoubleSide }); m.userData.perf = perfTex(w, h); return m; };
+  dmat.perfDoor = perf(505, 445); dmat.perfTop = perf(1520, 575); dmat.perfDrawer = perf(495, 445); dmat.perfBack = perf(1520, 470);
+  return dmat;
+}
+function chartTex(seed, type) {
+  const c = cvs(640, 380), t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  const r = rng(seed * 97 + 3), data = []; let v = 100 + r() * 50;
+  for (let i = 0; i < 70; i++) { const o = v; v += (r() - .48) * 3; data.push([o, v, Math.max(o, v) + r() * 1.5, Math.min(o, v) - r() * 1.5]); }
+  return { c, g: c.getContext('2d'), tex: t, data, r, type, seed };
+}
+const PAIRS = ['EUR/USD', 'USD/JPY', 'GBP/USD', 'BNP.PA', 'CAC 40', 'BUND 10Y', 'XAU/USD', 'USD/SGD'];
+function drawChart(s) {
+  const { g, data, type } = s, W = 640, H = 380;
+  g.fillStyle = '#070a10'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#0f1520'; g.fillRect(0, 0, W, 34);
+  g.font = '700 17px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'left';
+  const last = data[data.length - 1][1], prev = data[0][1], up = last >= prev;
+  g.fillStyle = '#d6dde8'; g.fillText(PAIRS[s.seed % PAIRS.length], 14, 18);
+  g.fillStyle = up ? '#2fd07a' : '#ff5b52'; g.fillText((last / 100).toFixed(4) + (up ? ' ▲' : ' ▼'), 150, 18);
+  g.fillStyle = '#4c5a70'; g.textAlign = 'right'; g.fillText('BNP · GM', W - 14, 18);
+  g.strokeStyle = 'rgba(255,255,255,.05)'; g.lineWidth = 1;
+  for (let i = 1; i < 6; i++) { g.beginPath(); g.moveTo(0, 34 + i * 58); g.lineTo(W, 34 + i * 58); g.stroke(); }
+  let mn = 1e9, mx = -1e9; data.forEach(d => { mn = Math.min(mn, d[3]); mx = Math.max(mx, d[2]); });
+  const Y = v => 50 + (1 - (v - mn) / (mx - mn || 1)) * (H - 80), bw = (W - 40) / data.length;
+  if (type === 2) {           // blotter / order book
+    g.textAlign = 'left'; g.font = '500 15px "JetBrains Mono", monospace';
+    for (let i = 0; i < 12; i++) { const y = 56 + i * 26, sell = i < 6, px = (last / 100 + (6 - i) * .0002).toFixed(4);
+      g.fillStyle = sell ? 'rgba(255,91,82,.12)' : 'rgba(47,208,122,.12)'; g.fillRect(20, y - 11, (0.2 + Math.abs(Math.sin(i * 7 + s.seed + data.length)) * .75) * (W - 40), 22);
+      g.fillStyle = sell ? '#ff7b72' : '#45d98a'; g.fillText(px, 30, y); g.fillStyle = '#9aa8bb'; g.fillText(((Math.sin(i * 3.3 + data[0][0]) + 1.4) * 4.2).toFixed(1) + 'M', 200, y); }
+  } else if (type === 1) {    // area line
+    g.beginPath(); data.forEach((d, i) => { const x = 20 + i * bw; i ? g.lineTo(x, Y(d[1])) : g.moveTo(x, Y(d[1])); });
+    g.strokeStyle = '#29b6f6'; g.lineWidth = 2.5; g.stroke(); g.lineTo(20 + (data.length - 1) * bw, H); g.lineTo(20, H); g.closePath();
+    const gr = g.createLinearGradient(0, 40, 0, H); gr.addColorStop(0, 'rgba(41,182,246,.35)'); gr.addColorStop(1, 'rgba(41,182,246,0)'); g.fillStyle = gr; g.fill();
+  } else {                    // candles
+    data.forEach((d, i) => { const x = 20 + i * bw + bw / 2, upc = d[1] >= d[0]; g.strokeStyle = g.fillStyle = upc ? '#2fd07a' : '#ff5b52';
+      g.beginPath(); g.moveTo(x, Y(d[2])); g.lineTo(x, Y(d[3])); g.lineWidth = 1.2; g.stroke(); g.fillRect(x - bw * .32, Y(Math.max(d[0], d[1])), bw * .64, Math.max(1.5, Math.abs(Y(d[0]) - Y(d[1])))); });
+  }
+  s.tex.needsUpdate = true;
+}
+function stepChart(s) { const d = s.data, o = d[d.length - 1][1], v = o + (s.r() - .48) * 3; d.push([o, v, Math.max(o, v) + s.r() * 1.5, Math.min(o, v) - s.r() * 1.5]); d.shift(); drawChart(s); }
+
+function buildDesk(primary) {
+  const m = deskMats(), P = 'desk';
+  const lbl = (t) => primary ? t : null;
+  const d = { h: primary ? .74 : 1.08, dir: 0, target: null, doorsOpen: [false, false], trayOut: false, busy: false, screens: [], vert: [], cols: [] };
+  const root = new THREE.Group(); d.group = root;
+  const cz0 = -.475, cz1 = .1, cD = cz1 - cz0, czc = (cz0 + cz1) / 2;
+
+  /* --- cabinet carcass (perforated steel) --- */
+  const cab = exGroup(root, [0, 0, -.05], P, lbl('Perforated CPU cabinet|1520 L × 550–600 D × 540 H'), [-.55, .6, czc]);
+  cab.add(at(box(1.5, .05, cD - .06, M.black), 0, .025, czc - .01));                    // recessed plinth
+  cab.add(at(box(1.52, .018, cD, m.cab), 0, .059, czc));                                // base
+  const back = box(1.52, .47, .002, m.perfBack); at(back, 0, .3, cz0 + .001); cab.add(back);
+  for (const x of [-.25, .25]) cab.add(at(box(.002, .45, cD - .03, m.cab), x, .293, czc - .01));   // bay dividers
+  for (const [x, z] of [[-.7, -.43], [.7, -.43], [-.7, .06], [.7, .06]]) cab.add(at(cyl(.014, .012, M.rubber, 16), x, .006, z));
+  const topP = exGroup(root, [0, .1, -.05], P);
+  const ctop = box(1.52, .002, cD, m.perfTop); at(ctop, 0, .539, czc); topP.add(ctop);
+  for (const s of [-1, 1]) topP.add(at(box(1.52, .02, .002, m.cab), 0, .53, s < 0 ? cz0 + .001 : cz1 - .001));
+  for (const x of [-.5, .5]) { const gr = new THREE.Mesh(new THREE.TorusGeometry(.05, .006, 10, 40), M.black); gr.rotation.x = PI / 2; at(gr, x, .541, -.19); topP.add(gr); }
+
+  /* --- end gables, 900 high with radiused end profile --- */
+  const gShape = new THREE.Shape();
+  const gp = [[cz0, 0], [cz1, 0], [cz1, .82], ...arcPts(cz1 - .08, .82, .08, 0, PI / 2, 14).map(([a, b]) => [a, b]), [cz0, .9]];
+  gShape.moveTo(-gp[0][0], gp[0][1]); gp.slice(1).forEach(([z, y]) => gShape.lineTo(-z, y));
+  const gGeo = new THREE.ExtrudeGeometry(gShape, { depth: .02, bevelEnabled: true, bevelThickness: .002, bevelSize: .002, bevelSegments: 2, curveSegments: 1 });
+  gGeo.rotateY(PI / 2);
+  for (const s of [-1, 1]) {
+    const ge = exGroup(root, [s * .32, 0, -.05], P, s > 0 ? lbl('End gable|900 H side gable profile') : null, [s * .79, .95, czc]);
+    const gm = new THREE.Mesh(gGeo, m.gable); shadows(gm); gm.position.x = s > 0 ? .762 : -.782; ge.add(gm);
+  }
+
+  /* --- front doors (perforated, hinged on outer edge) + CPU holder tray (retractable slide) --- */
+  d.doors = [];
+  for (const s of [-1, 1]) {
+    const de = exGroup(root, [s * .12, 0, .32], P, s < 0 ? lbl('Perforated door|selected perforation design') : null, [s * .5, .55, cz1]);
+    const pv = new THREE.Group(); pv.position.set(s * .76, .292, cz1); de.add(pv);
+    const dw = .506, dh = .45;
+    const dg = new THREE.Group(); dg.position.set(-s * (dw / 2 + .002), 0, -.009); pv.add(dg);
+    const face = box(dw, dh, .0015, m.perfDoor); face.position.z = .008; dg.add(face);
+    for (const yy of [dh / 2, -dh / 2]) dg.add(at(box(dw, .0015, .018, m.cab), 0, yy, 0));
+    for (const xx of [dw / 2, -dw / 2]) dg.add(at(box(.0015, dh, .018, m.cab), xx, 0, 0));
+    const handle = rbox(.012, .12, .018, .004, dmat.frame); at(handle, -s * (dw / 2 - .03), .05, .02); dg.add(handle);
+    face.userData.action = handle.userData.action = { t: 'cabdoor', s };
+    d.doors.push({ pv, angle: 0, s });
+    if (s < 0) for (const yy of [.17, -.17]) de.add(at(cyl(.005, .03, M.zinc, 12), s * .757, .292 + yy, cz1 + .002));
+    if (s > 0) for (const yy of [.17, -.17]) de.add(at(cyl(.005, .03, M.zinc, 12), s * .757, .292 + yy, cz1 + .002));
+  }
+  const trayE = exGroup(root, [0, 0, .5], P, lbl('CPU holder tray|retractable telescopic slide'), [0, .62, .25]);
+  const tray = new THREE.Group(); trayE.add(tray); d.tray = tray;
+  const tf = box(.495, .45, .0015, m.perfDrawer); at(tf, 0, .292, cz1 - .001); tray.add(tf);
+  for (const xx of [-.2475, .2475]) tray.add(at(box(.0015, .45, .018, m.cab), xx, .292, cz1 - .01));
+  tray.add(at(box(.46, .004, .5, m.cab), 0, .085, cz1 - .27));
+  const tHandle = rbox(.16, .014, .02, .005, dmat.frame); at(tHandle, 0, .46, cz1 + .012); tray.add(tHandle);
+  tf.userData.action = tHandle.userData.action = { t: 'tray' };
+  const cpu = rbox(.2, .42, .44, .006, M.monitor); at(cpu, 0, .297, cz1 - .27); tray.add(cpu);
+  const pw = new THREE.Mesh(new THREE.CircleGeometry(.007, 20), ledMat('#2a9cff')); at(pw, .06, .48, cz1 - .049); tray.add(pw);
+  for (let k = 0; k < 9; k++) tray.add(at(box(.14, .004, .001, M.black), -.01, .14 + k * .02, cz1 - .0495));
+  d.slides = [];
+  for (const s of [-1, 1]) {
+    const fixed = box(.004, .035, .45, M.zinc); at(fixed, s * .247, .11, cz0 + .27); root.add(fixed);
+    const mid = box(.004, .028, .45, M.alu); at(mid, s * .244, .11, cz0 + .27); root.add(mid); d.slides.push(mid);
+    tray.add(at(box(.004, .022, .45, M.steel), s * .241, .11, cz1 - .27));
+  }
+
+  /* --- lifting columns (3-stage round, JIE CHANG) + cable spines --- */
+  for (const x of [-.5, .5]) {
+    const ce = exGroup(root, [0, 0, 0], P);
+    const foot = box(.12, .01, .12, dmat.frame); at(foot, x, .072, -.19); ce.add(foot);
+    const outer = cyl(.04, .508, dmat.frame, 40); at(outer, x, .072 + .254, -.19); ce.add(outer);
+    const mid = cyl(.036, .5, dmat.frame, 40); ce.add(mid);
+    const inner = cyl(.032, .5, dmat.frame, 40); ce.add(inner);
+    const ringA = cyl(.0405, .008, M.black, 40); at(ringA, x, .58, -.19); ce.add(ringA);
+    const ringB = cyl(.0365, .006, M.black, 40); ce.add(ringB);
+    d.cols.push({ x, mid, inner, ringB });
+  }
+  if (primary) addLabel(root.children[root.children.length - 1], 'Round lifting column|JIE CHANG · 680–1250 mm', [.55, .9, -.19], P);
+  for (const x of [-.22, .22]) {
+    const vs = []; for (let k = 0; k < 18; k++) { const v = rbox(.05, .022, .034, .006, M.plastic, 2); v.castShadow = true; root.add(v); vs.push(v); }
+    d.vert.push({ x, vs });
+  }
+
+  /* --- moving top assembly: beam frame + motor/control box + HPL top + monitor rig + controller --- */
+  const top = new THREE.Group(); root.add(top); d.top = top;
+  const beamE = exGroup(top, [0, .16, 0], P, lbl('Fixed table beam structure|houses motor & control box'), [-.62, -.06, .2]);
+  beamE.add(at(box(1.3, .05, .06, dmat.frame), 0, -.05, -.19));
+  for (const x of [-.5, .5]) { beamE.add(at(box(.06, .035, .86, dmat.frame), x, -.0425, -.02)); beamE.add(at(box(.1, .008, .1, dmat.frame), x, -.077, -.19)); }
+  beamE.add(at(box(1.2, .03, .04, dmat.frame), 0, -.04, .34));
+  const mbox = rbox(.2, .045, .11, .006, M.plastic); at(mbox, .18, -.0475, -.05); beamE.add(mbox);
+  const mLed = ledMat('#163a4a'); d.motorLed = mLed; beamE.add(at(new THREE.Mesh(new THREE.SphereGeometry(.004, 10, 8), mLed), .26, -.05, .006));
+  const mLbl = decal(textTex([{ text: 'CONTROL BOX · 24V', font: '700 40px "JetBrains Mono", monospace', color: '#bbb' }], 512, 64), .1, .0125); at(mLbl, .16, -.047, .0055); beamE.add(mLbl);
+  for (const x of [-.5, .5]) { const mo = cyl(.03, .07, M.plastic, 24); mo.rotation.z = PI / 2; at(mo, x + (x < 0 ? .08 : -.08), -.06, -.19); beamE.add(mo); }
+  // HPL top with front bevelled profiling + grommets
+  const topE = exGroup(top, [0, .34, 0], P, lbl('HPL top 1500 × 950|front bevelled profile · 10 mm tolerance gap'), [.45, .04, .3]);
+  const prof = new THREE.Shape(); [[-.475, -.025], [.442, -.025], [.475, -.01], [.475, 0], [-.475, 0]].forEach(([z, y], i) => i ? prof.lineTo(-z, y) : prof.moveTo(-z, y));
+  const tGeo = new THREE.ExtrudeGeometry(prof, { depth: 1.5, bevelEnabled: true, bevelThickness: .0015, bevelSize: .0015, bevelSegments: 2, curveSegments: 1 });
+  tGeo.rotateY(PI / 2); tGeo.translate(-.75, 0, 0);
+  const uv = tGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * .9, uv.getY(i) * .9);
+  const tMesh = new THREE.Mesh(tGeo, m.top); shadows(tMesh); topE.add(tMesh);
+  for (const x of [-.6, .6]) { const gr = cyl(.03, .003, M.black, 32); at(gr, x, .0012, -.4); topE.add(gr); topE.add(at(cyl(.024, .002, M.plastic, 32), x, .0026, -.4)); }
+  // monitor holder: grommet mounting + 4–6 mm steel plate spreader
+  const rigE = exGroup(top, [0, .62, 0], P, lbl('Monitor holder|grommet mount · 4–6 mm steel plate spreader'), [.0, 1.0, -.38]);
+  const sp = box(.16, .006, .16, M.zinc); at(sp, 0, -.031, -.38); rigE.add(sp);
+  rigE.add(at(cyl(.012, .03, M.zinc, 16), 0, -.045, -.38));
+  rigE.add(at(cyl(.045, .016, dmat.frame, 40), 0, .008, -.38));
+  const pole = cyl(.025, .9, dmat.frame, 40); at(pole, 0, .45, -.38); rigE.add(pole);
+  d.rig = new THREE.Group(); rigE.add(d.rig);
+  // height controller (paddle under front edge, right)
+  const kpE = exGroup(top, [0, .12, .2], P, lbl('Height controller|3 memory presets · up / down'), [.62, -.06, .48]);
+  const kp = rbox(.15, .026, .055, .008, M.plastic); at(kp, .56, -.04, .43); kpE.add(kp);
+  const kc = cvs(256, 96); d.kpc = { c: kc, g: kc.getContext('2d'), tex: new THREE.CanvasTexture(kc) }; d.kpc.tex.colorSpace = THREE.SRGBColorSpace;
+  const disp = new THREE.Mesh(new THREE.PlaneGeometry(.044, .016), new THREE.MeshBasicMaterial({ map: d.kpc.tex, toneMapped: false })); at(disp, .52, -.04, .4578); kpE.add(disp);
+  const btn = (x, txt, act) => { const b = rbox(.014, .012, .006, .002, M.plasticGrey, 2); at(b, x, -.04, .459); b.userData.action = act; kpE.add(b);
+    const t = decal(textTex([{ text: txt, font: '800 90px Manrope, Arial, sans-serif', color: '#111' }], 128, 128), .01, .01); at(t, x, -.04, .4625); kpE.add(t); };
+  btn(.555, '▲', { t: 'kp', v: 'up', d }); btn(.573, '▼', { t: 'kp', v: 'down', d }); btn(.591, '1', { t: 'kp', v: 1, d }); btn(.609, '2', { t: 'kp', v: 2, d }); btn(.627, '3', { t: 'kp', v: 3, d });
+  buildRig(d);
+  setDeskHeight(d, d.h);
+  return d;
+}
+function buildRig(d) {
+  const rig = d.rig; d.screens.forEach(s => s.tex.dispose()); d.screens = [];
+  while (rig.children.length) rig.remove(rig.children[0]);
+  const n = DK.monitors, cols = n / 2, big = n === 4, w = big ? .615 : .54, hh = big ? .37 : .325, R = 1.25, step = (w + .01) / R;
+  const yb = .13 + hh / 2, yt = yb + hh + .012;
+  for (const y of [yb, yt]) { const bar = cyl(.013, (w + .01) * cols * .86, dmat.frame, 16); bar.rotation.z = PI / 2; at(bar, 0, y, -.405); rig.add(bar); }
+  for (let r = 0; r < 2; r++) for (let c = 0; c < cols; c++) {
+    const phi = (c - (cols - 1) / 2) * step, x = R * Math.sin(phi), z = -.33 + R * (1 - Math.cos(phi)), y = r ? yt : yb;
+    const mon = new THREE.Group(); mon.position.set(x, y, z); mon.rotation.y = -phi; rig.add(mon);
+    mon.add(rbox(w, hh, .028, .004, M.monitor, 3));
+    mon.add(at(rbox(.12, .12, .03, .01, M.monitor, 2), 0, 0, -.025));
+    const arm = (z + .405 - .03) / Math.cos(phi) + .01; mon.add(at(box(.03, .03, arm, dmat.frame), 0, 0, -.03 - arm / 2));
+    const s = chartTex(r * 10 + c + n + (d.group ? d.group.id : 0), (r * cols + c) % 3); drawChart(s); d.screens.push(s);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(w - .012, hh - .016), new THREE.MeshPhysicalMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: s.tex, emissiveIntensity: DK.screensOn ? .95 : 0, roughness: .12, clearcoat: .5, toneMapped: false }));
+    s.mat = scr.material; at(scr, 0, .003, .0145); mon.add(scr);
+  }
+  rig.traverse(o => { if (o.isMesh) o.castShadow = true; });
+}
+function setDeskHeight(d, h) {
+  d.h = Math.min(DK.max, Math.max(DK.min, h));
+  d.top.position.y = d.h;
+  const Yt = d.h - .077, midTop = .58 + (Yt - .58) * .5;   // 3-stage telescoping: outer fixed, mid travels half, inner full
+  for (const c of d.cols) {
+    c.inner.position.set(c.x, Yt - .25, -.19);
+    c.mid.position.set(c.x, midTop - .25, -.19);
+    c.ringB.position.set(c.x, midTop, -.19);
+  }
+  const yb = .545, yt = d.h - .072, L = yt - yb;
+  for (const v of d.vert) v.vs.forEach((m, k) => { const t = (k + .5) / v.vs.length; m.position.set(v.x, yb + L * t, -.3 + Math.sin(t * PI) * (.12 - L * .12)); m.rotation.y = (k % 2 ? .22 : -.22); m.rotation.x = Math.cos(t * PI) * .25; });
+  drawKeypad(d);
+}
+function drawKeypad(d) {
+  const { g, tex } = d.kpc; g.fillStyle = '#05080a'; g.fillRect(0, 0, 256, 96);
+  g.fillStyle = '#7ff3ff'; g.font = '600 64px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText((d.h * 100).toFixed(1), 128, 50); tex.needsUpdate = true;
+}
+async function deskDoor(d, k) {
+  const dr = d.doors[k], to = dr.angle > .1 ? 0 : 1.75, from = dr.angle;
+  sfx.click();
+  await tween(1, e => { dr.angle = lerp(from, to, e); dr.pv.rotation.y = dr.s < 0 ? -dr.angle : dr.angle; }, to ? ease.out : ease.in);
+  d.doorsOpen[k] = !!to; refreshDemo();
+}
+async function deskTray(d) {
+  const out = !d.trayOut, z0 = d.tray.position.z; sfx.slide();
+  await tween(1.1, e => { d.tray.position.z = lerp(z0, out ? .4 : 0, e); d.slides.forEach(s => s.position.z = -.475 + .27 + d.tray.position.z * .5); }, ease.io);
+  d.trayOut = out; refreshDemo();
+}
+
+/* ============================== SOUND ============================== */
+const sfx = (() => {
+  let AC = null, on = true, humNode = null;
+  const ac = () => { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; };
+  const tone = (f, d, vol = .06, type = 'sine', when = 0) => { if (!on) return; const a = ac(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime + when;
+    o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05); };
+  const noise = (d, vol, f = 2500) => { if (!on) return; const a = ac(), b = a.createBuffer(1, a.sampleRate * d, a.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 3);
+    const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); fl.type = 'bandpass'; fl.frequency.value = f; g.gain.value = vol; s.buffer = b; s.connect(fl).connect(g).connect(a.destination); s.start(); };
+  return {
+    get on() { return on; }, set on(v) { on = v; if (!v) this.hum(false); },
+    beep: (f = 1200, d = .08, v = .05) => tone(f, d, v),
+    chime: () => { tone(988, .12, .06); tone(1318, .22, .06, 'sine', .1); },
+    deny: () => { tone(220, .18, .07, 'square'); tone(180, .25, .06, 'square', .18); },
+    click: () => noise(.05, .5, 3200),
+    slide: () => noise(.5, .25, 900),
+    hum(v) { if (v && on && !humNode) { const a = ac(), o = a.createOscillator(), o2 = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
+        o.type = 'sawtooth'; o.frequency.value = 92; o2.type = 'sine'; o2.frequency.value = 184; f.type = 'lowpass'; f.frequency.value = 420; g.gain.value = 0;
+        g.gain.linearRampToValueAtTime(.035, a.currentTime + .15); o.connect(f); o2.connect(f); f.connect(g).connect(a.destination); o.start(); o2.start(); humNode = { o, o2, g, a }; }
+      if (!v && humNode) { const h = humNode; humNode = null; h.g.gain.linearRampToValueAtTime(0, h.a.currentTime + .15); setTimeout(() => { h.o.stop(); h.o2.stop(); }, 250); } },
+  };
+})();
+
+/* ============================== PRODUCTS / CAMERA ============================== */
+try { await Promise.race([Promise.all(['800 40px Manrope, Arial, sans-serif', '700 40px Manrope, Arial, sans-serif', '600 40px Manrope, Arial, sans-serif', '700 40px "JetBrains Mono", monospace', '600 40px "JetBrains Mono", monospace', '500 40px "JetBrains Mono", monospace'].map(f => document.fonts.load(f))), wait(2500)]); } catch (e) { }
+const products = {};
+products.lockset = { group: buildLockset(), title: 'BLOCKS Smart Lockset', eyebrow: 'Demo kit · 4 lockers + 1 tech compartment', sub: '600 W × 450 D × 468 H mm · RFID & face recognition access', parts: ['body', 'doors', 'lid', 'interior', 'handle'], bp: 'lockset' };
+scene.add(products.lockset.group);
+const deskRoot = new THREE.Group(); scene.add(deskRoot);
+DK.desks.push(buildDesk(true)); deskRoot.add(DK.desks[0].group);
+DK.desks.push(buildDesk(false)); const deskB = DK.desks[1]; deskB.group.rotation.y = PI; deskB.group.position.z = -.96; deskB.group.visible = false; deskRoot.add(deskB.group);
+deskRoot.userData.camera = { iso: [3.05, 2.05, 3.5], front: [0, 1.05, 4.4], side: [4.4, 1.1, -.1], top: [0, 5.2, .05], back: [-2, 1.9, -4.1], target: [0, .86, -.05], min: 1.0, max: 10 };
+deskRoot.userData.contact = 2.7;
+products.desk = { group: deskRoot, title: 'BNP Paribas Trader Desk', eyebrow: 'Project · 1500 × 950 module · qty 44 sets', sub: 'Electric sit–stand 680–1250 mm · perforated CPU cabinet · 4–8 screens', parts: ['top', 'frame', 'cabinet', 'gable'], bp: 'desk' };
+for (const k in PARTS) applyFinish(k, PARTS[k].def);
+
+let current = 'lockset', view = 'iso';
+function camPreset(v, instant) {
+  const c = products[current].group.userData.camera, p = fitPos(c[v]), t = new THREE.Vector3(...c.target);
+  view = v; $$('.hud [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  if (instant) { camJob++; camera.position.copy(p); controls.target.copy(t); controls.update(); return; }
+  camTo(p, t);
+}
+let camJob = 0;
+function fitPos(arr) {   // pull the camera back on narrow / portrait screens so the whole product fits
+  const t = new THREE.Vector3(...products[current].group.userData.camera.target), p = new THREE.Vector3(...arr);
+  const k = Math.min(2.6, Math.max(1, 1.4 / (innerWidth / innerHeight))) * (current === 'desk' && DK.pair ? 1.25 : 1);
+  return p.sub(t).multiplyScalar(k).add(t);
+}
+function camTo(p, t, dur = 1.1) {
+  const job = ++camJob, p0 = camera.position.clone(), t0 = controls.target.clone(); t = t || t0.clone();
+  return tween(dur, e => { if (job !== camJob) return; camera.position.lerpVectors(p0, p, e); controls.target.lerpVectors(t0, t, e); });
+}
+function setProduct(p, instant) {
+  current = p; const P = products[p];
+  products.lockset.group.visible = p === 'lockset'; deskRoot.visible = p === 'desk';
+  const c = P.group.userData.camera; controls.minDistance = c.min; controls.maxDistance = c.max * 2.6;
+  contact.scale.setScalar(P.group.userData.contact * (p === 'desk' && DK.pair ? 1.3 : 1));
+  $$('#prodSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  $('#pTitle').textContent = P.title; $('#pEyebrow').textContent = P.eyebrow; $('#pSub').textContent = P.sub;
+  camPreset('iso', instant); renderTab();
+  setStatus(p === 'lockset' ? 'Pick a locker, then unlock with RFID, Face ID or PIN' : 'Hold ▲ ▼ on the controller to drive the lifting columns', '');
+}
+
+/* ============================== UI ============================== */
+let tab = 'demo';
+function setStatus(t, tone = '') { const s = $('#status'); s.className = 'status ' + tone; $('#statusText').textContent = t; }
+const ICON = {
+  rfid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="12" height="13" rx="2"/><path d="M17 8.5a4 4 0 0 1 0 6M19.5 6a8 8 0 0 1 0 11"/><path d="M6 10h6M6 13h4"/></svg>',
+  face: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 10v1M15 10v1M12 10v3h-1M9.5 16a4 4 0 0 0 5 0"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="9" cy="8" r=".6" fill="currentColor"/><circle cx="12" cy="8" r=".6" fill="currentColor"/><circle cx="15" cy="8" r=".6" fill="currentColor"/><circle cx="9" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="15" cy="12" r=".6" fill="currentColor"/><path d="M9 16.5h6"/></svg>',
+  deny: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="12" height="13" rx="2"/><path d="m17 9 4 4m0-4-4 4"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>',
+  lid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 9h18M5 9l2-4h10l2 4M5 12h14v8H5z"/></svg>',
+  chip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="7" width="10" height="10" rx="1"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg>',
+  door: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V4h9v16M13 4l6 2v16l-6-2"/><circle cx="15.5" cy="13" r=".8" fill="currentColor"/></svg>',
+  tray: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 13h18M10 16.5h4"/></svg>',
+  screen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/></svg>',
+  up: '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 6 5 15h14z"/></svg>',
+  down: '<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M12 18 5 9h14z"/></svg>',
+};
+function act(id, icon, label, small = '', cls = '') { return `<button class="act ${cls}" id="${id}">${ICON[icon] || ''}<span>${label}</span>${small ? `<small>${small}</small>` : ''}</button>`; }
+function renderTab() {
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  const B = $('#pbody');
+  if (tab === 'demo') B.innerHTML = current === 'lockset' ? lockDemoHTML() : deskDemoHTML();
+  if (tab === 'finish') B.innerHTML = finishHTML();
+  if (tab === 'specs') B.innerHTML = specsHTML();
+  if (tab === 'lib') B.innerHTML = libHTML();
+  bindTab(); refreshDemo();
+}
+function lockDemoHTML() {
+  return `
+  <div class="sec"><h3>1 · Select locker</h3><div class="chips" id="lkSel">${lock.lockers.map((l, k) => `<button class="chip" data-k="${k}"><span class="dot"></span>Locker 0${l.n}</button>`).join('')}</div></div>
+  <div class="sec"><h3>2 · Unlock with</h3><div class="btnrow">
+    ${act('uRfid', 'rfid', 'RFID card', 'tap card to reader', 'primary')}${act('uFace', 'face', 'Face recognition', 'iPad front camera', 'primary')}
+    ${act('uPin', 'pin', 'PIN code', 'on control panel')}${act('uDeny', 'deny', 'Wrong card', 'see access denied')}</div></div>
+  <div class="sec"><h3>3 · Doors</h3><div class="btnrow three">${act('lClose', 'close', 'Close & lock')}${act('lAllOpen', 'open', 'Open all', 'admin')}${act('lAllClose', 'close', 'Lock all')}</div></div>
+  <div class="sec"><h3>Tech compartment</h3><div class="btnrow">${act('lLid', 'lid', 'Lift lid', 'removable top')}${act('lTray', 'chip', 'Raise PCB tray', 'lockboard service')}</div></div>
+  <div class="sec"><h3>Handle detail</h3><div class="chips" id="optHandle"><button class="chip" data-o="1">Option 1 · Recessed</button><button class="chip" data-o="2">Option 2 · Metal rod</button></div></div>
+  <div class="sec"><h3>Door mounting</h3><div class="chips" id="optHinge"><button class="chip" data-o="1">Option 1 · Hinges</button><button class="chip" data-o="2">Option 2 · Pin hinges</button></div>
+  <p class="note">Mechanism: the door's steel 'C' hook enters the BLOCKS lock; the yellow bolt crosses the hook to lock. On a valid credential the lockboard energises the latch, the bolt retracts and the door swings on its hinges. Tip: tap a door, the reader or the iPad in 3D.</p></div>`;
+}
+function deskDemoHTML() {
+  const d = DK.desks[DK.ctl];
+  return `
+  ${DK.pair ? `<div class="sec"><h3>Controlling</h3><div class="chips" id="ctlSel"><button class="chip" data-c="0">Desk A (front)</button><button class="chip" data-c="1">Desk B (back)</button></div></div>` : ''}
+  <div class="sec"><h3>Height controller <em>dual motor · ${Math.round(DK.speed * 1000)} mm/s</em></h3>
+   <div class="ctrl"><div><div class="disp" id="hDisp">${(d.h * 100).toFixed(1)}<small>cm</small></div><div class="bar"><b id="hBar"></b></div><div class="range">68.0 ─ 125.0 cm</div></div>
+     <div class="ud"><button id="hUp" aria-label="Up">${ICON.up}</button><button id="hDown" aria-label="Down">${ICON.down}</button></div>
+     <div class="mem" id="hMem"><button data-m="1">1 · Sit<small>72.0</small></button><button data-m="2">2 · Perch<small>95.0</small></button><button data-m="3">3 · Stand<small>112.0</small></button></div></div></div>
+  <div class="sec"><h3>Cabinet</h3><div class="btnrow three">${act('dDoorL', 'door', 'Left door')}${act('dTray', 'tray', 'CPU tray', 'slide out')}${act('dDoorR', 'door', 'Right door')}</div></div>
+  <div class="sec"><h3>Monitor array <em>4–8 screens (TBC)</em></h3><div class="chips" id="monSel"><button class="chip" data-n="4">4 × 27″</button><button class="chip" data-n="6">6 × 24″</button><button class="chip" data-n="8">8 × 24″</button><button class="chip" id="scrOn">${ICON.screen.replace('<svg', '<svg width="16" height="16"')} Screens ${DK.screensOn ? 'on' : 'off'}</button></div></div>
+  <div class="sec"><h3>Layout</h3><div class="chips" id="laySel"><button class="chip" data-l="0">Single module</button><button class="chip" data-l="1">Back-to-back pair</button></div>
+  <p class="note">Each module lifts independently on its own beam & columns; back-to-back modules keep a 10 mm tolerance gap. Cable spines stretch with the top. Tap the controller buttons, cabinet doors or CPU tray in 3D too.</p></div>`;
+}
+function finishHTML() {
+  const ps = products[current].parts; if (!finishHTML.part || !ps.includes(finishHTML.part)) finishHTML.part = ps[0];
+  const p = PARTS[finishHTML.part]; if (!finishHTML.cat || !p.cats.includes(finishHTML.cat)) finishHTML.cat = p.current.cat;
+  const presets = PRESETS[current];
+  return `
+  <div class="sec"><h3>Studio presets</h3><div class="presets">${presets.map((pr, k) => `<button class="preset" data-pr="${k}"><div class="strip">${Object.values(pr.set).map(id => `<span style="background:${swatchCSS(FIN[id])};background-size:cover"></span>`).join('')}</div>${pr.name}</button>`).join('')}</div></div>
+  <div class="sec"><h3>Component</h3><div class="parts">${ps.map(k => `<button class="chip ${k === finishHTML.part ? 'on' : ''}" data-part="${k}"><span class="sw" style="background:${swatchCSS(PARTS[k].current)};background-size:cover"></span>${PARTS[k].label}</button>`).join('')}</div></div>
+  <div class="sec"><h3>Material</h3><div class="cats">${p.cats.map(c => `<button class="chip ${c === finishHTML.cat ? 'on' : ''}" data-cat="${c}">${LIB[c].label}</button>`).join('')}</div></div>
+  <div class="sec"><h3>Colour <em>${LIB[finishHTML.cat].list.length} options</em></h3><div class="swatches">${LIB[finishHTML.cat].list.map(f => `<button class="swatch ${p.current.id === f.id ? 'on' : ''}" data-fin="${f.id}"><span class="s" style="background:${swatchCSS(f)};background-size:cover"></span>${f.name}</button>`).join('')}</div>
+  <div class="fincard"><b>${p.current.name}</b> · ${LIB[p.current.cat].label} · code ${p.current.code}<br>${LIB[p.current.cat].spec}</div></div>`;
+}
+const PRESETS = {
+  lockset: [
+    { name: 'Oak & White (default)', set: { body: 'hpl:Polar White', doors: 'wood:Natural Oak', lid: 'fenix:Nero Ingo', interior: 'melamine:White Polykem', handle: 'metal:Brushed Stainless #4' } },
+    { name: 'All-white clean', set: { body: 'hpl:Polar White', doors: 'hpl:Polar White', lid: 'fenix:Bianco Kos', interior: 'melamine:White Polykem', handle: 'metal:Polished Chrome' } },
+    { name: 'Midnight executive', set: { body: 'fenix:Nero Ingo', doors: 'wood:American Walnut', lid: 'fenix:Nero Ingo', interior: 'melamine:Black Polykem', handle: 'metal:Satin Brass' } },
+    { name: 'Corporate navy', set: { body: 'hpl:Arctic Grey', doors: 'fenix:Blu Fes', lid: 'hpl:Anthracite', interior: 'melamine:Light Grey Polykem', handle: 'metal:Black Anodised' } },
+  ],
+  desk: [
+    { name: 'BNP trading floor', set: { top: 'hpl:Polar White', frame: 'powder:RAL 9005 Jet Black', cabinet: 'powder:RAL 9016 Traffic White', gable: 'powder:RAL 9016 Traffic White' } },
+    { name: 'Stealth graphite', set: { top: 'fenix:Nero Ingo', frame: 'powder:RAL 9005 Jet Black', cabinet: 'powder:RAL 7016 Anthracite', gable: 'fenix:Nero Ingo' } },
+    { name: 'Warm oak', set: { top: 'wood:Natural Oak', frame: 'powder:RAL 9006 White Aluminium', cabinet: 'powder:RAL 9016 Traffic White', gable: 'wood:Natural Oak' } },
+    { name: 'Silver & grey', set: { top: 'fenix:Grigio Londra', frame: 'metal:Brushed Stainless #4', cabinet: 'powder:RAL 7035 Light Grey', gable: 'powder:RAL 7035 Light Grey' } },
+  ],
+};
+function specsHTML() {
+  const S = current === 'lockset' ? [
+    ['Product', 'BLOCKS Smart Lockset — Demo Kit'], ['Configuration', '4 locker compartments + 1 tech compartment'], ['Overall size', '600 W × 450 D × 468 H mm'], ['Corners', '4 × 50R radiused'],
+    ['Carcass / door panel', 'KD panel, HPL finish'], ['Internal carcass', 'White Polykem'], ['Top', '18 mm compact laminate board (phenolic), removable'], ['Tech compartment', '100 mm — lockboard, PCB + extra wiring'],
+    ['Wire management', '50 mm thk concealed wire compartment, both sides'], ['Access control', 'iPad control panel (cut-out 115 × 95 mm), RFID card reader, face recognition'], ['Door hardware', "'C' hook catch · BLOCKS lockset"], ['Door mounting', 'Option 1 hinges · Option 2 pin hinges'], ['Handle', 'Option 1 recessed · Option 2 metal rod'],
+  ] : [
+    ['Project', 'BNP Paribas'], ['Product', 'Trader desk 1500 × 950 mm module'], ['Quantity', '44 sets'], ['Drawing date', '18.09.2024'], ['Top', 'HPL with front bevelled profiling'],
+    ['Lifting', 'Round lifting columns (JIE CHANG), height 680–1250 mm'], ['Structure', 'Fixed table beam housing motor & control boxes'], ['Monitor holder', 'Grommet mounting with 4–6 mm steel plate spreader; 4–8 screens (TBC)'],
+    ['Cabinet', '1520 L × 550–600 D × 540 H, perforation profile / design (TBC)'], ['CPU', 'CPU holder tray on retractable slide'], ['Side gable', '900 H, end gable profile'], ['Tolerance gap', '10 mm (10–20 mm between modules)'], ['Cable management', 'Grommet holes provision · vertical cable spine'],
+  ];
+  const bp = current === 'lockset' ? 'blueprints/blocks-smart-lockset.jpg' : 'blueprints/bnp-trader-desk.jpg';
+  return `<div class="sec"><h3>Original blueprint</h3><button class="bpthumb" id="bpOpen"><img src="${bp}" alt="Blueprint"><span>Open blueprint ↗</span></button></div>
+  <div class="sec"><h3>Specification</h3><table class="spec">${S.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('')}</table></div>
+  <div class="sec"><h3>Current finishes</h3><table class="spec">${products[current].parts.map(k => `<tr><td>${PARTS[k].label}</td><td>${PARTS[k].current.name} <span style="color:var(--ink3);font-weight:500">· ${LIB[PARTS[k].current.cat].label}</span></td></tr>`).join('')}</table></div>`;
+}
+function libHTML() {
+  return `<div class="lib"><p style="margin-top:14px">Finish families used by commercial furniture and smart-locker manufacturers. Every swatch below is selectable on the relevant component in <b>Finishes</b>.</p>
+  ${Object.values(LIB).map(L => `<h4>${L.label}</h4><p>${L.spec}</p><div class="row">${L.list.map(f => `<span><i style="background:${swatchCSS(f)};background-size:cover"></i>${f.name}</span>`).join('')}</div>`).join('')}
+  <h4>Hardware & electronics</h4><p>Zinc-plated hinges & pins, 304 stainless 'C' hooks, yellow-zinc lock bolts, ABS lock housings, FR-4 PCB lockboard, aluminium PSU housing, black-glass iPad & RFID bezels, rubber levelling feet.</p>
+  <h4>How the realism is built</h4><p>Physically-based (PBR) materials — colour, roughness, metalness and clearcoat per finish — lit by an HDR studio environment with soft shadows and ACES tone-mapping. Woodgrain, brushed-metal and perforation patterns are generated procedurally at runtime.</p></div>`;
+}
+function bindTab() {
+  const on = (sel, ev, fn) => { const el = $(sel); if (el) el.addEventListener(ev, fn); };
+  $$('#lkSel .chip').forEach(b => b.onclick = () => { lock.selected = +b.dataset.k; if (lock.screenMode === 'idle') screen('idle'); refreshDemo(); });
+  on('#uRfid', 'click', () => unlockSeq('rfid')); on('#uFace', 'click', () => unlockSeq('face')); on('#uPin', 'click', () => unlockSeq('pin')); on('#uDeny', 'click', () => unlockSeq('deny'));
+  on('#lClose', 'click', () => closeLocker()); on('#lAllOpen', 'click', () => allLockers(true)); on('#lAllClose', 'click', () => allLockers(false));
+  on('#lLid', 'click', () => toggleLid()); on('#lTray', 'click', () => toggleTray());
+  $$('#optHandle .chip').forEach(b => b.onclick = () => { setHandleOpt(+b.dataset.o); refreshDemo(); setStatus(+b.dataset.o === 1 ? 'Handle option 1 — recessed finger slots in the lid' : 'Handle option 2 — metal rod carry handle', 'ok'); });
+  $$('#optHinge .chip').forEach(b => b.onclick = async () => { if (lock.lockers.some(l => l.open)) await allLockers(false); setHingeOpt(+b.dataset.o); refreshDemo(); setStatus(+b.dataset.o === 1 ? 'Door mounting option 1 — knuckle hinges' : 'Door mounting option 2 — concealed pin hinges', 'ok'); });
+  // desk
+  const d = DK.desks[DK.ctl];
+  const hold = (el, dir) => { if (!el) return; const start = e => { e.preventDefault(); el.setPointerCapture?.(e.pointerId); el.classList.add('hold'); d.target = null; d.dir = dir; }; const stop = () => { el.classList.remove('hold'); d.dir = 0; };
+    el.addEventListener('pointerdown', start); el.addEventListener('pointerup', stop); el.addEventListener('pointercancel', stop); el.addEventListener('lostpointercapture', stop); };
+  hold($('#hUp'), 1); hold($('#hDown'), -1);
+  $$('#hMem button').forEach(b => b.onclick = () => goPreset(d, +b.dataset.m));
+  on('#dDoorL', 'click', () => deskDoor(d, 0)); on('#dDoorR', 'click', () => deskDoor(d, 1)); on('#dTray', 'click', () => deskTray(d));
+  $$('#monSel [data-n]').forEach(b => b.onclick = () => { DK.monitors = +b.dataset.n; DK.desks.forEach(buildRig); refreshDemo(); setStatus(`${DK.monitors}-screen array mounted on the grommet pole`, 'ok'); });
+  on('#scrOn', 'click', () => { DK.screensOn = !DK.screensOn; DK.desks.forEach(dd => dd.screens.forEach(s => s.mat.emissiveIntensity = DK.screensOn ? .95 : 0)); renderTab(); });
+  $$('#laySel .chip').forEach(b => b.onclick = () => { DK.pair = b.dataset.l === '1'; deskB.group.visible = DK.pair; deskRoot.position.z = DK.pair ? .48 : 0; if (!DK.pair) DK.ctl = 0; setProduct('desk'); });
+  $$('#ctlSel .chip').forEach(b => b.onclick = () => { DK.ctl = +b.dataset.c; renderTab(); });
+  // finishes
+  $$('.preset').forEach(b => b.onclick = () => { const pr = PRESETS[current][+b.dataset.pr]; for (const [k, id] of Object.entries(pr.set)) applyFinish(k, id); renderTab(); setStatus(`Preset applied — ${pr.name}`, 'ok'); });
+  $$('[data-part]').forEach(b => b.onclick = () => { finishHTML.part = b.dataset.part; finishHTML.cat = null; renderTab(); });
+  $$('[data-cat]').forEach(b => b.onclick = () => { finishHTML.cat = b.dataset.cat; renderTab(); });
+  $$('[data-fin]').forEach(b => b.onclick = () => { applyFinish(finishHTML.part, b.dataset.fin); const sc = $('#pbody').scrollTop; renderTab(); $('#pbody').scrollTop = sc; setStatus(`${PARTS[finishHTML.part].label}: ${FIN[b.dataset.fin].name}`, 'ok'); });
+  on('#bpOpen', 'click', () => openBlueprint(products[current].bp));
+}
+function goPreset(d, m) { d.target = { 1: .72, 2: .95, 3: 1.12 }[m]; d.dir = 0; setStatus(`Memory ${m} — moving to ${(d.target * 100).toFixed(1)} cm`, 'busy'); }
+function refreshDemo() {
+  if (tab !== 'demo') return;
+  if (current === 'lockset') {
+    $$('#lkSel .chip').forEach(b => { const k = +b.dataset.k; b.classList.toggle('on', k === lock.selected); b.querySelector('.dot').classList.toggle('open', lock.lockers[k].open); });
+    ['#uRfid', '#uFace', '#uPin', '#uDeny', '#lAllOpen', '#lAllClose', '#lLid', '#lTray'].forEach(s => { const e = $(s); if (e) e.disabled = lock.busy; });
+    const c = $('#lClose'); if (c) c.disabled = lock.busy || !lock.lockers[lock.selected].open;
+    const l = $('#lLid span'); if (l) l.textContent = lock.lidOpen ? 'Refit lid' : 'Lift lid';
+    const t = $('#lTray span'); if (t) t.textContent = lock.trayUp ? 'Lower PCB tray' : 'Raise PCB tray';
+    $$('#optHandle .chip').forEach(b => b.classList.toggle('on', +b.dataset.o === lock.handleOpt));
+    $$('#optHinge .chip').forEach(b => b.classList.toggle('on', +b.dataset.o === lock.hingeOpt));
+  } else {
+    const d = DK.desks[DK.ctl];
+    const s = (id, t) => { const e = $(id + ' span'); if (e) e.textContent = t; };
+    s('#dDoorL', d.doorsOpen[0] ? 'Close left' : 'Left door'); s('#dDoorR', d.doorsOpen[1] ? 'Close right' : 'Right door'); s('#dTray', d.trayOut ? 'Push tray in' : 'CPU tray');
+    $$('#monSel [data-n]').forEach(b => b.classList.toggle('on', +b.dataset.n === DK.monitors));
+    $$('#laySel .chip').forEach(b => b.classList.toggle('on', (b.dataset.l === '1') === DK.pair));
+    $$('#ctlSel .chip').forEach(b => b.classList.toggle('on', +b.dataset.c === DK.ctl));
+    updateHeightUI();
+  }
+}
+function updateHeightUI() {
+  const d = DK.desks[DK.ctl], e = $('#hDisp'); if (!e) return;
+  e.innerHTML = `${(d.h * 100).toFixed(1)}<small>cm</small>`; $('#hBar').style.width = ((d.h - DK.min) / (DK.max - DK.min) * 100).toFixed(1) + '%';
+  $$('#hMem button').forEach(b => b.classList.toggle('on', Math.abs({ 1: .72, 2: .95, 3: 1.12 }[b.dataset.m] - d.h) < .002));
+}
+
+$$('#tabs button').forEach(b => b.onclick = () => { tab = b.dataset.tab; renderTab(); if (isMobile()) $('#panel').classList.remove('min'); });
+$$('#prodSeg button').forEach(b => b.onclick = () => { if (b.dataset.p !== current) setProduct(b.dataset.p); });
+$$('.hud [data-view]').forEach(b => b.onclick = () => camPreset(b.dataset.view));
+$('#btnSpin').onclick = () => { controls.autoRotate = !controls.autoRotate; $('#btnSpin').classList.toggle('on', controls.autoRotate); };
+$('#btnReset').onclick = () => camPreset('iso');
+$('#btnExplode').onclick = () => {
+  explodeTarget = explodeTarget ? 0 : 1; $('#btnExplode').classList.toggle('on', !!explodeTarget);
+  setStatus(explodeTarget ? 'Exploded view — every component separated & labelled' : 'Assembled view', 'ok');
+  if (explodeTarget && current === 'lockset' && view === 'iso') camTo(fitPos([1.75, 1.18, 2.05]), null, 1.2);
+  if (explodeTarget && current === 'desk' && view === 'iso') camTo(fitPos([3.9, 2.75, 4.4]), null, 1.2);
+  if (!explodeTarget && view === 'iso') camPreset('iso');
+};
+$('#btnTheme').onclick = () => { const dark = document.documentElement.dataset.theme !== 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : ''; ground.material.opacity = dark ? .35 : .2; hemi.intensity = dark ? .35 : .55; renderer.toneMappingExposure = dark ? .92 : 1; };
+$('#btnSound').onclick = () => { sfx.on = !sfx.on; $('#sndWave').style.opacity = sfx.on ? 1 : .15; };
+$('#grab').onclick = () => $('#panel').classList.toggle('min');
+
+/* blueprint viewer */
+const BP = { lockset: { img: 'blueprints/blocks-smart-lockset.jpg', pdf: 'blueprints/blocks-smart-lockset-demo-kit.pdf', t: "'BLOCKS' Smart Lockset — Demo Kit" }, desk: { img: 'blueprints/bnp-trader-desk.jpg', pdf: 'blueprints/bnp-paribas-trader-desk.pdf', t: 'BNP Paribas Project — Trader Desk' } };
+const bpv = { s: 1, x: 0, y: 0 };
+function bpApply() { $('#bpImg').style.transform = `translate(${bpv.x}px,${bpv.y}px) scale(${bpv.s})`; }
+function openBlueprint(k) {
+  const b = BP[k]; $('#bpTitle').textContent = b.t; $('#bpPdf').href = b.pdf; $$('#bpTabs button').forEach(x => x.classList.toggle('on', x.dataset.bp === k));
+  const img = $('#bpImg'); $('#bpModal').classList.add('open');
+  const fit = () => { const v = $('#bpView').getBoundingClientRect(); bpv.s = Math.min(v.width / img.naturalWidth, v.height / img.naturalHeight) * .94; bpv.x = -img.naturalWidth * bpv.s / 2; bpv.y = -img.naturalHeight * bpv.s / 2; bpApply(); };
+  img.onload = fit; img.src = b.img; if (img.complete && img.naturalWidth) fit();
+}
+function bpZoom(f, cx, cy) { const v = $('#bpView').getBoundingClientRect(); cx = cx ?? v.width / 2; cy = cy ?? v.height / 2; const ox = cx - v.width / 2, oy = cy - v.height / 2;
+  const ns = Math.min(8, Math.max(.1, bpv.s * f)), k = ns / bpv.s; bpv.x = ox - (ox - bpv.x) * k; bpv.y = oy - (oy - bpv.y) * k; bpv.s = ns; bpApply(); }
+$('#btnBlueprint').onclick = () => openBlueprint(products[current].bp);
+$$('#bpTabs button').forEach(b => b.onclick = () => openBlueprint(b.dataset.bp));
+$('#bpZoomIn').onclick = () => bpZoom(1.35); $('#bpZoomOut').onclick = () => bpZoom(1 / 1.35);
+(() => { const v = $('#bpView'), pts = new Map(); let last = null;
+  v.addEventListener('wheel', e => { e.preventDefault(); const r = v.getBoundingClientRect(); bpZoom(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  v.addEventListener('pointerdown', e => { v.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); last = null; });
+  v.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return; const p = pts.get(e.pointerId);
+    if (pts.size === 1) { bpv.x += e.clientX - p[0]; bpv.y += e.clientY - p[1]; bpApply(); }
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()], dd = Math.hypot(a[0] - b[0], a[1] - b[1]); const r = v.getBoundingClientRect(); if (last) bpZoom(dd / last, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top); last = dd; } });
+  const up = e => { pts.delete(e.pointerId); last = null; }; v.addEventListener('pointerup', up); v.addEventListener('pointercancel', up);
+})();
+$('#btnRenders').onclick = () => $('#rdModal').classList.add('open');
+$$('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').classList.remove('open'));
+addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal').forEach(m => m.classList.remove('open')); });
+
+/* 3D picking */
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => { camJob++; downAt = [e.clientX, e.clientY, performance.now()]; controls.autoRotate && (controls.autoRotate = false, $('#btnSpin').classList.remove('on')); });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6 || performance.now() - downAt[2] > 450) return;
+  const r = renderer.domElement.getBoundingClientRect(); ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hits = ray.intersectObject(products[current].group, true).filter(h => { let o = h.object; while (o) { if (!o.visible) return false; o = o.parent; } return true; });
+  for (const h of hits) { let o = h.object; while (o && !o.userData.action) o = o.parent; if (o) { onAction(o.userData.action); return; } }
+});
+function onAction(a) {
+  sfx.beep(1100, .02, .02);
+  if (a.t === 'door') { const lk = lock.lockers[a.i]; lock.selected = a.i; if (lk.open) closeLocker(a.i); else { screen('idle'); refreshDemo(); setStatus(`Locker 0${lk.n} selected — present card, face or PIN to unlock`, ''); } }
+  if (a.t === 'rfid') unlockSeq('rfid');
+  if (a.t === 'face') unlockSeq('face');
+  if (a.t === 'lid') toggleLid();
+  if (a.t === 'cabdoor') deskDoor(DK.desks[0], a.s < 0 ? 0 : 1);
+  if (a.t === 'tray') deskTray(DK.desks[0]);
+  if (a.t === 'kp') { const d = a.d; if (a.v === 'up' || a.v === 'down') { d.target = Math.min(DK.max, Math.max(DK.min, d.h + (a.v === 'up' ? .1 : -.1))); setStatus(`Nudging ${a.v} 100 mm`, 'busy'); } else goPreset(d, a.v); }
+}
+
+/* ============================== LOOP ============================== */
+function resize() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h); labelRenderer.setSize(w, h);
+  camera.aspect = w / h;
+  const pnl = $('#panel').getBoundingClientRect();
+  if (isMobile()) camera.setViewOffset(w, h, 0, Math.round(pnl.height * .42), w, h);
+  else camera.setViewOffset(w, h, Math.round((pnl.width + 18) / 2) - 30, 0, w, h);
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+new ResizeObserver(resize).observe($('#panel'));
+
+const clock = new THREE.Clock(); let chartAcc = 0, frame = 0;
+function loop() {
+  const dt = Math.min(clock.getDelta(), .25), T = clock.elapsedTime;
+  for (let i = tweens.length - 1; i >= 0; i--) { const tw = tweens[i]; tw.t += dt; const k = Math.min(1, tw.t / tw.dur); tw.fn(tw.e(k)); if (k >= 1) { tweens.splice(i, 1); tw.res(); } }
+  // explode
+  const ed = explodeTarget - explodeT; if (Math.abs(ed) > 1e-4) explodeT += Math.sign(ed) * Math.min(Math.abs(ed), dt / 1.1);
+  const ee = ease.io(explodeT);
+  for (const x of EX) x.g.position.copy(x.off).multiplyScalar(ee);
+  for (const l of LABELS) { const vis = l.product === current && explodeT > .55 && (l.product !== 'desk' || true); l.obj.visible = vis; l.el.style.opacity = Math.max(0, (explodeT - .55) / .45); }
+  // desk motion
+  let moving = false;
+  for (const d of DK.desks) {
+    let v = 0;
+    if (d.dir) v = d.dir; else if (d.target != null) { const df = d.target - d.h; if (Math.abs(df) < .0008) { d.h = d.target; d.target = null; if (d === DK.desks[DK.ctl]) setStatus(`Holding at ${(d.h * 100).toFixed(1)} cm`, 'ok'); } else v = Math.sign(df); }
+    if (v) { const nh = d.h + v * DK.speed * dt * (d.target != null ? Math.min(1, Math.abs(d.target - d.h) / .02 + .25) : 1); const cl = Math.min(DK.max, Math.max(DK.min, nh)); if (cl !== d.h) { moving = true; setDeskHeight(d, d.target != null && Math.abs(d.target - cl) < .0008 ? d.target : cl); } else if (d.dir) setStatus(d.dir > 0 ? 'Upper limit — 125.0 cm' : 'Lower limit — 68.0 cm', ''); }
+    d.motorLed.emissive.set(v && current === 'desk' ? (Math.sin(T * 12) > 0 ? '#19c6ea' : '#0b5566') : '#163a4a');
+  }
+  if (current === 'desk') { sfx.hum(moving); if (moving) { updateHeightUI(); if (DK.desks[DK.ctl].dir) setStatus(`Columns ${DK.desks[DK.ctl].dir > 0 ? 'extending' : 'retracting'} · ${(DK.desks[DK.ctl].h * 100).toFixed(1)} cm`, 'busy'); } } else sfx.hum(false);
+  // live screens
+  chartAcc += dt; if (chartAcc > .9 && current === 'desk' && DK.screensOn) { chartAcc = 0; DK.desks.forEach(d => d.screens.forEach((s, k) => { if ((frame + k) % 2 === 0) stepChart(s); })); }
+  if (current === 'lockset' && ['rfid', 'face', 'granted', 'denied'].includes(lock.screenMode)) { if (lock.screenMode === 'granted' || lock.screenMode === 'denied') lock.screenData.t = (lock.screenData.t || 0) + dt; drawScreen(T); }
+  else if (frame % 600 === 0) drawScreen(T);
+  if (lock.ringMat && !lock.busy) lock.ringMat.emissiveIntensity = 1.6 + Math.sin(T * 2.4) * .6;
+  frame++;
+  controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+resize(); setProduct('lockset', true); screen('idle');
+requestAnimationFrame(() => { loop(); setTimeout(() => $('#loader').classList.add('done'), 350); });
+// first interaction unlocks audio on iOS
+addEventListener('pointerdown', () => { if (sfx.on) sfx.beep(1, .001, 0); }, { once: true });
+window.__vcop = { lock, DK, products, camPreset, setProduct, unlockSeq, toggleLid, toggleTray, deskDoor, deskTray, setDeskHeight, get explode() { return explodeT; }, set explode(v) { explodeT = explodeTarget = v; } };
+</script>
+</body>
+</html>
