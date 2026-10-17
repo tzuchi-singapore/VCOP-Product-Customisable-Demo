@@ -9,7 +9,7 @@
 <meta property="og:title" content="VCOP Product Demo">
 <meta property="og:description" content="Interactive 3D demo of VCOP's BLOCKS Smart Lockset and BNP Paribas Trader Desk.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://tzuchi-singapore.github.io/VCOP-Blocks-smart-lock-set-Demo/assets/render-blocks-lockset.jpg">
+<meta property="og:image" content="https://tzuchi-singapore.github.io/VCOP-Product-Customisable-Demo/assets/render-blocks-lockset.jpg">
 <meta name="description" content="Interactive 3D showcase of VCOP's BLOCKS Smart Lockset and BNP Paribas Trader Desk — explode view, live finishes and working mechanisms.">
 <meta name="theme-color" content="#efeee9">
 <link rel="icon" href="assets/vcop-logo-dark.png">
@@ -223,6 +223,82 @@ table.spec td:last-child{font-weight:600}
   .pbody{padding:2px 16px calc(24px + env(safe-area-inset-bottom))}
   .hint{display:none}
 }
+
+/* ===== cinematic show mode ===== */
+.iconbtn.play{background:var(--accent);color:#fff;border-color:transparent;padding:0 16px 0 13px}
+.iconbtn.play svg{width:16px;height:16px}
+.iconbtn.play::after{content:"";position:absolute}
+body.showing .top,body.showing .hud,body.showing .explode,body.showing .status,body.showing .panel,body.showing .hint{opacity:0;pointer-events:none;transform:translateY(-6px)}
+.top,.hud,.explode,.status,.panel,.hint{transition:opacity .6s,transform .6s}
+body.showing .panel{transform:translateX(30px)}
+.show{position:fixed;inset:0;z-index:40;pointer-events:none;visibility:hidden}
+body.showing .show{visibility:visible}
+.lb{position:absolute;left:0;right:0;height:0;background:#000;transition:height 1s cubic-bezier(.6,0,.2,1);z-index:2}
+.lb.t{top:0}.lb.b{bottom:0}
+body.showing .lb{height:7.5vh}
+.shade{position:absolute;left:0;right:0;bottom:0;height:46vh;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,0));opacity:0;transition:opacity 1s}
+body.showing .shade{opacity:1}
+.cap{position:absolute;left:6vw;bottom:calc(7.5vh + 4.5vh);max-width:min(680px,88vw);color:#fff;opacity:0;transform:translateY(14px);transition:opacity .55s,transform .55s cubic-bezier(.2,.8,.2,1);z-index:3}
+.cap.in{opacity:1;transform:none}
+.cap .k{font:800 12px/1 Manrope,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#5fdcf5;margin-bottom:10px}
+.cap h2{margin:0 0 8px;font:800 clamp(28px,4.2vw,52px)/1.05 Manrope,sans-serif;letter-spacing:-.02em;text-shadow:0 2px 24px rgba(0,0,0,.4)}
+.cap p{margin:0;font:500 clamp(14px,1.35vw,18px)/1.5 Manrope,sans-serif;color:rgba(255,255,255,.86);max-width:560px}
+.prog{position:absolute;top:calc(7.5vh - 16px);left:6vw;right:6vw;display:flex;gap:6px;z-index:3}
+.prog i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative}
+.prog i.done{background:rgba(255,255,255,.8)}
+.prog i.on{background:rgba(255,255,255,.3)}
+.prog i.on::after{content:"";position:absolute;inset:0;background:#5fdcf5;animation:prog 6s linear infinite}
+@keyframes prog{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+.sbrand{position:absolute;top:calc(7.5vh + 18px);left:6vw;z-index:3;opacity:.92}
+.sbrand img{height:26px;display:block}
+.sctl{position:absolute;top:calc(7.5vh + 14px);right:5vw;display:flex;gap:8px;z-index:4;pointer-events:auto;opacity:0;transition:opacity .4s}
+body.ctl-awake .sctl{opacity:1}
+.sctl button{width:46px;height:46px;border-radius:50%;background:rgba(20,22,26,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center}
+.sctl button svg{width:20px;height:20px}
+.sctl button.off{opacity:.45}
+.sctl button.x{background:rgba(255,255,255,.92);color:#111}
+.pausebadge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;z-index:2}
+.pausebadge span{background:rgba(0,0,0,.55);color:#fff;font:800 13px Manrope;letter-spacing:.2em;padding:12px 20px;border-radius:999px}
+body.show-paused .pausebadge{opacity:1}
+.flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.55),rgba(255,255,255,0) 65%);opacity:0;transition:opacity .25s;z-index:1}
+.flash.on{opacity:1}
+.scard{position:absolute;inset:0;z-index:5;background:radial-gradient(90% 80% at 50% 45%,#16181c,#050506);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;opacity:0;pointer-events:none;transition:opacity 1.1s}
+.scard.in{opacity:1}
+.scard img{height:64px}
+.scard .t1{font:800 clamp(28px,4vw,48px)/1.1 Manrope;letter-spacing:-.02em}
+.scard .t2{font:600 13px Manrope;letter-spacing:.24em;text-transform:uppercase;color:#5fdcf5}
+#intro img{animation:none}
+#intro.in img{animation:rise 2.2s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+#endCard{background:radial-gradient(80% 70% at 50% 45%,rgba(16,18,22,.86),rgba(5,5,6,.96))}
+#endCard.in{pointer-events:auto}
+#endCard .contact{font:500 13px/1.6 Manrope;color:rgba(255,255,255,.65)}
+#endCard .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px;padding:0 16px}
+#endCard button{padding:13px 18px;border-radius:13px;font:700 14px Manrope;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#endCard button.p{background:#5fdcf5;color:#071317;border-color:transparent}
+.co{position:relative;width:0;height:0;opacity:0;transition:opacity .5s}
+.co.in{opacity:1}
+.co .dot{position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:50%;background:rgba(95,220,245,.95);border:2px solid #fff;box-shadow:0 0 0 0 rgba(95,220,245,.7);animation:ping 1.6s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 16px rgba(95,220,245,0)}100%{box-shadow:0 0 0 0 rgba(95,220,245,0)}}
+.co .ln{position:absolute;left:0;top:0;width:70px;height:2px;background:#fff;transform-origin:0 50%;transform:rotate(-38deg) scaleX(0);transition:transform .45s .15s cubic-bezier(.2,.8,.2,1)}
+.co.in .ln{transform:rotate(-38deg) scaleX(1)}
+.co .txt{position:absolute;left:55px;bottom:40px;white-space:nowrap;background:rgba(8,10,14,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.2);border-left:3px solid #5fdcf5;border-radius:10px;padding:8px 12px;font:800 13.5px/1.25 Manrope,sans-serif;opacity:0;transform:translateY(6px);transition:opacity .4s .45s,transform .4s .45s}
+.co .txt small{display:block;font-weight:500;font-size:11.5px;color:rgba(255,255,255,.7)}
+.co.in .txt{opacity:1;transform:none}
+.co.l .ln{transform:rotate(-142deg) scaleX(0)}
+.co.l.in .ln{transform:rotate(-142deg) scaleX(1)}
+.co.l .txt{left:auto;right:55px;border-left:1px solid rgba(255,255,255,.2);border-right:3px solid #5fdcf5;text-align:right}
+@media (max-width:820px){
+  body.showing .lb{height:5vh}
+  .cap{left:5vw;right:5vw;bottom:calc(5vh + 3vh)}
+  .cap h2{font-size:27px}.cap p{font-size:13.5px}
+  .prog{top:calc(5vh - 12px);left:5vw;right:5vw}
+  .sbrand{top:calc(5vh + 14px);left:5vw}.sbrand img{height:20px}
+  .sctl{top:calc(5vh + 8px);right:4vw;gap:6px}.sctl button{width:40px;height:40px}
+  .co .txt{font-size:11px;padding:6px 9px}.co .txt small{font-size:9.5px}
+  .co .ln{width:44px}.co .txt{left:36px;bottom:26px}.co.l .txt{right:36px}
+  .iconbtn.play{padding:0 12px}
+}
 </style>
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
@@ -245,6 +321,7 @@ table.spec td:last-child{font-weight:600}
   </nav>
   <div class="spacer"></div>
   <div class="actions">
+    <button class="iconbtn play" id="btnPlay" title="Play the guided product show"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg><span class="t">Play show</span></button>
     <button class="iconbtn" id="btnBlueprint" title="Original blueprint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4M8 12h8M8 16h5"/></svg><span class="t">Blueprint</span></button>
     <button class="iconbtn" id="btnRenders" title="Photoreal renders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg><span class="t">Renders</span></button>
     <button class="iconbtn" id="btnTheme" title="Light / dark studio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
@@ -298,6 +375,30 @@ table.spec td:last-child{font-weight:600}
   <div class="gallery">
     <figure><img src="assets/render-blocks-lockset.jpg" alt="BLOCKS smart lockset render"><figcaption><b>BLOCKS Smart Lockset — Demo Kit</b>AI studio render generated with Higgsfield from the VCOP blueprint brief.</figcaption></figure>
     <figure><img src="assets/render-trader-desk.jpg" alt="Trader desk render"><figcaption><b>BNP Paribas — Trader Desk 1500 × 950</b>AI environment render generated with Higgsfield from the VCOP blueprint brief.</figcaption></figure>
+  </div>
+</div>
+
+<div class="show" id="show">
+  <div class="flash" id="flash"></div>
+  <div class="shade"></div>
+  <div class="pausebadge"><span>PAUSED</span></div>
+  <div class="lb t"></div><div class="lb b"></div>
+  <div class="prog" id="prog"></div>
+  <div class="sbrand"><img src="assets/vcop-logo-light.png" alt="VCOP"></div>
+  <div class="sctl">
+    <button id="sPause" title="Pause / play (space)"></button>
+    <button id="sSkip" title="Next scene (→)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v14l9-7zM15 5h3v14h-3z"/></svg></button>
+    <button id="sVoice" title="Voice-over on / off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    <button id="sExit" class="x" title="Exit show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="cap" id="cap"><div class="k" id="capK"></div><h2 id="capT"></h2><p id="capB"></p></div>
+  <div class="scard" id="intro"><img src="assets/vcop-logo-light.png" alt="VCOP"><div class="t2">Product Demo</div></div>
+  <div class="scard" id="endCard">
+    <img src="assets/vcop-logo-light.png" alt="VCOP">
+    <div class="t2">Valued · Committed · Office Partners</div>
+    <div class="t1" id="endProd"></div>
+    <div class="contact">VCOP Pte Ltd · 1557 Keppel Road, #02-03, Singapore 089066<br>Tel 6338 9822</div>
+    <div class="row"><button class="p" id="endNext"></button><button id="endReplay">↺ Replay</button><button id="endExplore">Explore in 3D</button></div>
   </div>
 </div>
 
@@ -361,7 +462,8 @@ function rng(seed = 1) { let s = seed % 2147483647; if (s <= 0) s += 2147483646;
 const ease = { io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, out: t => 1 - Math.pow(1 - t, 3), in: t => t * t * t, back: t => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }, lin: t => t };
 const tweens = [];
 function tween(dur, fn, e = ease.io) { return new Promise(res => tweens.push({ t: 0, dur, fn, e, res })); }
-const wait = ms => new Promise(r => setTimeout(r, ms));
+const timers = [];
+const wait = ms => new Promise(r => timers.push({ t: ms / 1000, r }));
 const lerp = (a, b, t) => a + (b - a) * t;
 const box = (w, h, d, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.castShadow = m.receiveShadow = true; return m; };
 const cyl = (r, h, mat, seg = 32, r2) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r2 ?? r, h, seg), mat); m.castShadow = m.receiveShadow = true; return m; };
@@ -873,7 +975,7 @@ async function toggleLid() {
   const y0 = g.position.y, z0 = g.position.z, r0 = g.rotation.x;
   const H0 = L.H, Z0 = -L.D / 2;
   await tween(1.1, e => { g.position.y = lerp(y0, open ? H0 + .08 : H0, e); g.position.z = lerp(z0, open ? Z0 - .06 : Z0, e); g.rotation.x = lerp(r0, open ? -.5 : 0, e); });
-  if (open && view === 'iso' && current === 'lockset') camTo(fitPos([1.0, 1.35, 1.2]));
+  if (open && view === 'iso' && current === 'lockset' && !SHOW.on) camTo(fitPos([1.0, 1.35, 1.2]));
   lock.lidOpen = open; setStatus(open ? 'Tech compartment exposed — lockboard, PCB & wiring' : 'Lid closed', 'ok');
   lock.busy = false; refreshDemo();
 }
@@ -1104,14 +1206,24 @@ async function deskTray(d) {
 
 /* ============================== SOUND ============================== */
 const sfx = (() => {
-  let AC = null, on = true, humNode = null;
+  let AC = null, on = true, humNode = null, mus = null;
   const ac = () => { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; };
   const tone = (f, d, vol = .06, type = 'sine', when = 0) => { if (!on) return; const a = ac(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime + when;
     o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05); };
   const noise = (d, vol, f = 2500) => { if (!on) return; const a = ac(), b = a.createBuffer(1, a.sampleRate * d, a.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 3);
     const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); fl.type = 'bandpass'; fl.frequency.value = f; g.gain.value = vol; s.buffer = b; s.connect(fl).connect(g).connect(a.destination); s.start(); };
   return {
-    get on() { return on; }, set on(v) { on = v; if (!v) this.hum(false); },
+    get on() { return on; }, set on(v) { on = v; if (!v) { this.hum(false); this.music(false); } else if (SHOW.on) this.music(true); },
+    music(v) {
+      if (v && on && !mus) {
+        const a = ac(), g = a.createGain(), f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = 0; g.gain.linearRampToValueAtTime(.03, a.currentTime + 2.5); f.connect(g).connect(a.destination);
+        const CH = [[130.8, 196, 246.9, 329.6], [110, 164.8, 261.6, 329.6], [87.3, 174.6, 220, 329.6], [98, 146.8, 246.9, 293.7]];
+        const os = CH[0].map((fr, i) => { const o = a.createOscillator(), og = a.createGain(); o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = fr; o.detune.value = (i - 1.5) * 4; og.gain.value = i ? .5 : .8; o.connect(og).connect(f); o.start(); return o; });
+        let k = 0; const iv = setInterval(() => { k = (k + 1) % CH.length; os.forEach((o, i) => o.frequency.setTargetAtTime(CH[k][i], a.currentTime, .6)); }, 4800);
+        mus = { a, g, os, iv };
+      }
+      if (!v && mus) { const m = mus; mus = null; clearInterval(m.iv); m.g.gain.cancelScheduledValues(m.a.currentTime); m.g.gain.setTargetAtTime(0, m.a.currentTime, .4); setTimeout(() => m.os.forEach(o => o.stop()), 1800); }
+    },
     beep: (f = 1200, d = .08, v = .05) => tone(f, d, v),
     chime: () => { tone(988, .12, .06); tone(1318, .22, .06, 'sine', .1); },
     deny: () => { tone(220, .18, .07, 'square'); tone(180, .25, .06, 'square', .18); },
@@ -1125,7 +1237,7 @@ const sfx = (() => {
 })();
 
 /* ============================== PRODUCTS / CAMERA ============================== */
-try { await Promise.race([Promise.all(['800 40px Manrope, Arial, sans-serif', '700 40px Manrope, Arial, sans-serif', '600 40px Manrope, Arial, sans-serif', '700 40px "JetBrains Mono", monospace', '600 40px "JetBrains Mono", monospace', '500 40px "JetBrains Mono", monospace'].map(f => document.fonts.load(f))), wait(2500)]); } catch (e) { }
+try { await Promise.race([Promise.all(['800 40px Manrope, Arial, sans-serif', '700 40px Manrope, Arial, sans-serif', '600 40px Manrope, Arial, sans-serif', '700 40px "JetBrains Mono", monospace', '600 40px "JetBrains Mono", monospace', '500 40px "JetBrains Mono", monospace'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); } catch (e) { }
 const products = {};
 products.lockset = { group: buildLockset(), title: 'BLOCKS Smart Lockset', eyebrow: 'Demo kit · 4 lockers + 1 tech compartment', sub: '600 W × 450 D × 468 H mm · RFID & face recognition access', parts: ['body', 'doors', 'lid', 'interior', 'handle'], bp: 'lockset' };
 scene.add(products.lockset.group);
@@ -1150,9 +1262,10 @@ function fitPos(arr) {   // pull the camera back on narrow / portrait screens so
   const k = Math.min(2.6, Math.max(1, 1.4 / (innerWidth / innerHeight))) * (current === 'desk' && DK.pair ? 1.25 : 1);
   return p.sub(t).multiplyScalar(k).add(t);
 }
+let camMoving = false;
 function camTo(p, t, dur = 1.1) {
-  const job = ++camJob, p0 = camera.position.clone(), t0 = controls.target.clone(); t = t || t0.clone();
-  return tween(dur, e => { if (job !== camJob) return; camera.position.lerpVectors(p0, p, e); controls.target.lerpVectors(t0, t, e); });
+  const job = ++camJob, p0 = camera.position.clone(), t0 = controls.target.clone(); t = t || t0.clone(); camMoving = true;
+  return tween(dur, e => { if (job !== camJob) return; camera.position.lerpVectors(p0, p, e); controls.target.lerpVectors(t0, t, e); }).then(() => { if (job === camJob) camMoving = false; });
 }
 function setProduct(p, instant) {
   current = p; const P = products[p];
@@ -1162,7 +1275,7 @@ function setProduct(p, instant) {
   $$('#prodSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
   $('#pTitle').textContent = P.title; $('#pEyebrow').textContent = P.eyebrow; $('#pSub').textContent = P.sub;
   camPreset('iso', instant); renderTab();
-  setStatus(p === 'lockset' ? 'Pick a locker, then unlock with RFID, Face ID or PIN' : 'Hold ▲ ▼ on the controller to drive the lifting columns', '');
+  setStatus(p === 'lockset' ? 'Press ▶ Play show for a guided tour — or pick a locker and unlock it' : 'Hold ▲ ▼ on the controller to drive the lifting columns', '');
 }
 
 /* ============================== UI ============================== */
@@ -1330,7 +1443,7 @@ $('#btnExplode').onclick = () => {
   if (explodeTarget && current === 'desk' && view === 'iso') camTo(fitPos([3.9, 2.75, 4.4]), null, 1.2);
   if (!explodeTarget && view === 'iso') camPreset('iso');
 };
-$('#btnTheme').onclick = () => { const dark = document.documentElement.dataset.theme !== 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : ''; ground.material.opacity = dark ? .35 : .2; hemi.intensity = dark ? .35 : .55; renderer.toneMappingExposure = dark ? .92 : 1; };
+$('#btnTheme').onclick = () => setTheme(document.documentElement.dataset.theme !== 'dark');
 $('#btnSound').onclick = () => { sfx.on = !sfx.on; $('#sndWave').style.opacity = sfx.on ? 1 : .15; };
 $('#grab').onclick = () => $('#panel').classList.toggle('min');
 
@@ -1364,8 +1477,9 @@ addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal').forEach(
 
 /* 3D picking */
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let downAt = null;
-renderer.domElement.addEventListener('pointerdown', e => { camJob++; downAt = [e.clientX, e.clientY, performance.now()]; controls.autoRotate && (controls.autoRotate = false, $('#btnSpin').classList.remove('on')); });
+renderer.domElement.addEventListener('pointerdown', e => { if (SHOW.on) return; camJob++; downAt = [e.clientX, e.clientY, performance.now()]; controls.autoRotate && (controls.autoRotate = false, $('#btnSpin').classList.remove('on')); });
 renderer.domElement.addEventListener('pointerup', e => {
+  if (SHOW.on) return;
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6 || performance.now() - downAt[2] > 450) return;
   const r = renderer.domElement.getBoundingClientRect(); ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
   ray.setFromCamera(ptr, camera);
@@ -1383,12 +1497,307 @@ function onAction(a) {
   if (a.t === 'kp') { const d = a.d; if (a.v === 'up' || a.v === 'down') { d.target = Math.min(DK.max, Math.max(DK.min, d.h + (a.v === 'up' ? .1 : -.1))); setStatus(`Nudging ${a.v} 100 mm`, 'busy'); } else goPreset(d, a.v); }
 }
 
+/* ============================== CINEMATIC SHOW MODE ==============================
+   Storyboard follows product-marketing practice: hero reveal → macro close-ups with callouts →
+   mechanism in action → exploded "hero moment" → colour variants → end card with brand & contact. */
+const SHOW = { on: false, paused: false, fast: false, abort: false, voice: true, drift: 0, saved: null, prevDark: false, idx: 0, n: 0, prod: null };
+class Abort extends Error { }
+const chk = () => { if (SHOW.abort) throw new Abort(); };
+async function sWait(ms) { await wait(ms); chk(); }
+async function until(fn, max = 20000) { let t = 0; while (!fn() && t < max) { await wait(80); t += 80; } chk(); }
+async function waitFor(fn, max = 6000) { let t = 0; while (!fn() && t < max) { await wait(60); t += 60; } }
+function shotPos(pos, target) {
+  const a = innerWidth / innerHeight, k = a < 1 ? Math.min(2.8, 1.5 / a) : Math.pow(Math.max(1, 1.4 / a), .85);
+  return new THREE.Vector3(...pos).sub(target).multiplyScalar(k).add(target);
+}
+async function sCam(pos, target, dur = 2.2) { const t = new THREE.Vector3(...target); await camTo(shotPos(pos, t), t, dur); chk(); }
+function camSet(pos, target) { camJob++; camMoving = false; const t = new THREE.Vector3(...target); camera.position.copy(shotPos(pos, t)); controls.target.copy(t); controls.update(); }
+function setExplode(v) { explodeTarget = v; $('#btnExplode').classList.toggle('on', !!v); }
+function setTheme(dark) { document.documentElement.dataset.theme = dark ? 'dark' : ''; ground.material.opacity = dark ? .35 : .2; hemi.intensity = dark ? .35 : .55; renderer.toneMappingExposure = dark ? .92 : 1; }
+
+/* ---- callouts: pulsing hotspot + leader line + label, pinned to a 3D point ---- */
+const callouts = [];
+function callout(pos, text, sub = '', side = 'r') {
+  const el = document.createElement('div'); el.className = 'co ' + side;
+  el.innerHTML = `<span class="dot"></span><span class="ln"></span><div class="txt">${text}${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const o = new CSS2DObject(el); o.position.set(...pos); scene.add(o); callouts.push(o);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('in')));
+  sfx.beep(1600, .03, .015);
+}
+function clearCallouts() { callouts.splice(0).forEach(o => { o.element.classList.remove('in'); setTimeout(() => o.removeFromParent(), 450); }); }
+
+/* ---- captions + voice-over ---- */
+let VOICE = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices(); if (!vs.length) return;
+  for (const p of ['Google UK English Female', 'Microsoft Sonia', 'Microsoft Libby', 'Serena', 'Martha', 'Kate', 'Samantha', 'Google US English', 'Microsoft Aria', 'Daniel'])
+    { const v = vs.find(x => x.name.includes(p)); if (v) return VOICE = v; }
+  VOICE = vs.find(v => /^en-(GB|SG|AU)/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text) {
+  return new Promise(res => {
+    if (!SHOW.voice || SHOW.fast || !('speechSynthesis' in window)) return res(false);
+    const u = new SpeechSynthesisUtterance(text); if (VOICE) u.voice = VOICE; u.lang = VOICE?.lang || 'en-GB'; u.rate = .98; u.pitch = 1;
+    let done = false; const fin = () => { if (!done) { done = true; res(true); } };
+    u.onend = fin; u.onerror = fin; speechSynthesis.cancel(); speechSynthesis.speak(u);
+    setTimeout(fin, 3000 + text.length * 110);
+  });
+}
+function caption(kicker, title, body) {
+  const c = $('#cap'); c.classList.remove('in');
+  setTimeout(() => { $('#capK').textContent = kicker; $('#capT').textContent = title; $('#capB').textContent = body; c.classList.add('in'); }, 260);
+}
+async function say(kicker, title, body) {
+  caption(kicker, title, body);
+  const est = Math.max(3.2, body.split(/\s+/).length / 2.6 + 1.2);
+  if (SHOW.voice && 'speechSynthesis' in window && !SHOW.fast) { await wait(300); const t0 = performance.now(); await speak(title + '. ' + body); if (performance.now() - t0 < 600) await wait(est * 1000); await wait(350); }
+  else await wait(est * 1000);
+  chk();
+}
+async function flashApply(set) { $('#flash').classList.add('on'); await sWait(200); for (const [k, id] of Object.entries(set)) applyFinish(k, id); $('#flash').classList.remove('on'); }
+
+/* ---- storyboards ---- */
+function lockShow() {
+  const L2 = lock;
+  return [
+    { name: 'Intro', run: async () => {
+      card('#intro', true); camSet([-1.75, .42, 2.35], [0, .22, 0]); await sWait(2000); card('#intro', false);
+      await Promise.all([sCam([1.25, .76, 1.45], [0, .23, 0], 5.5), say('VCOP presents', 'BLOCKS Smart Lockset', 'A compact smart locker demo kit. Four secure lockers and a dedicated tech compartment, in one 600 by 450 millimetre unit.')]);
+    } },
+    { name: 'Design', run: async () => {
+      await sCam([-.78, .72, .78], [-.18, .34, .12], 2.6);
+      callout([-.3, .27, .18], '4 × 50R radiused corners', 'KD panel · HPL finish', 'l');
+      await sWait(500); callout([-.05, .468, .21], '18 mm compact laminate top', 'phenolic black core');
+      await sWait(500); callout([.06, .392, .226], "Engraved 'BLOCKS' fascia");
+      await say('01 · Design', 'Crafted, not just built', 'KD panels wrap four 50 millimetre radiused corners in hard-wearing HPL, capped with an 18 millimetre compact laminate top.');
+      clearCallouts();
+    } },
+    { name: 'RFID', run: async () => {
+      L2.selected = 1; screen('idle');
+      await sCam([.95, .3, .55], [.3, .17, .03], 2.4);
+      callout([.302, .17, -.02], 'RFID card reader', '13.56 MHz contactless');
+      const v = say('02 · Access', 'Tap your card', 'Present an RFID card to the side reader. The lockboard verifies it in a fraction of a second, and the locker springs open.');
+      const u = unlockSeq('rfid');
+      await sWait(2700); clearCallouts();
+      await sCam([.58, .46, 1.12], [.12, .24, .12], 2);
+      await u; chk(); callout([.25, .31, .36], 'Door swings open 105°', 'released & spring-assisted');
+      await v; await sWait(600); clearCallouts();
+    } },
+    { name: 'Lock', run: async () => {
+      await sCam([.13, .37, .62], [.02, .25, .18], 2.4);
+      callout([.026, .244, .197], 'Bolt retracts 16 mm', 'yellow-zinc steel');
+      await sWait(500); callout([.012, .3, .168], 'BLOCKS electronic latch', 'status LED · lockboard controlled', 'l');
+      const v = say('03 · Inside the lock', 'Engineered security', "A steel C-hook on the door engages the BLOCKS electronic latch. On a valid credential the bolt retracts. Close the door, and it re-locks automatically.");
+      await sWait(4200); clearCallouts();
+      await sCam([.45, .42, 1.15], [.1, .24, .12], 1.6);
+      await closeLocker(1); chk(); callout([.125, .3, .23], 'Auto re-lock', "'C' hook latched · LED red");
+      await v; await sWait(700); clearCallouts();
+    } },
+    { name: 'Face ID', run: async () => {
+      L2.selected = 0; screen('idle');
+      await sCam([.84, .4, .38], [.3, .3, .02], 2.2);
+      callout([.302, .358, -.045], 'iPad control panel', 'face recognition · PIN', 'l');
+      const v = say('04 · Hands-free', 'Or simply look', 'The iPad control panel recognises a registered face, and opens the assigned locker. PIN entry is built in too.');
+      const u = unlockSeq('face');
+      await sWait(3100); clearCallouts();
+      await sCam([-.4, .46, 1.12], [-.12, .24, .12], 2);
+      await u; chk(); await v;
+      L2.selected = 3; const p = unlockSeq('pin'); await sCam([.75, .42, .7], [.3, .26, .03], 1.6); caption('04 · Hands-free', 'PIN entry', 'Four digits on the control panel — locker 04 opens.');
+      await p; chk(); await sWait(900);
+    } },
+    { name: 'Tech', run: async () => {
+      const c = allLockers(false); await sCam([.62, 1.12, .82], [0, .36, 0], 2.2); await c; chk();
+      const v = say('05 · Smart hub', 'Brains under the lid', 'Lift the removable lid to reach the 100 millimetre tech compartment: the lockboard PCB, power supply and neatly managed wiring, with concealed 50 millimetre wire channels on both sides.');
+      await toggleLid(); chk(); await toggleTray(); chk();
+      callout([-.05, .505, -.03], 'Lockboard PCB', '4 relay channels · network', 'l');
+      await sWait(500); callout([.13, .535, -.1], '12 V DC power supply');
+      await sWait(500); callout([.245, .4, .1], '50 mm concealed wire channel', 'both sides');
+      await v; await sWait(800); clearCallouts(); await toggleLid(); chk();
+    } },
+    { name: 'Exploded', run: async () => {
+      const p = sCam([1.85, 1.22, 2.15], [0, .3, 0], 2.2); setExplode(1); await p; SHOW.drift = .22;
+      await say('06 · Exploded view', 'Every part, on show', 'Every component is designed to be assembled, serviced and upgraded with ease.');
+      await sWait(2400); SHOW.drift = 0; setExplode(0); await sWait(1300);
+    } },
+    { name: 'Options', run: async () => {
+      await sCam([.78, 1.0, 1.05], [0, .42, 0], 2);
+      const v = say('07 · Options', 'Made your way', 'Choose a recessed handle or a solid metal carry rod, and knuckle hinges or concealed pin hinges.');
+      await sWait(1300); $('#flash').classList.add('on'); await sWait(180); setHandleOpt(2); $('#flash').classList.remove('on');
+      callout([.13, .56, 0], 'Option 2 · metal rod handle'); await sWait(2600); clearCallouts();
+      await sCam([-.62, .42, .82], [-.24, .26, .2], 1.8); setHingeOpt(2); callout([-.2365, .333, .219], 'Option 2 · pin hinges', 'concealed pivot', 'l');
+      await v; await sWait(900); clearCallouts(); setHingeOpt(1);
+    } },
+    { name: 'Finishes', run: async () => {
+      await sCam([1.25, .76, 1.45], [0, .23, 0], 2); SHOW.drift = .32;
+      const v = say('08 · Finishes', 'Your colours, your brand', 'HPL, FENIX super-matt, real woodgrain and metal finishes, to match any interior.');
+      for (const pr of [...PRESETS.lockset.slice(1), PRESETS.lockset[0]]) { await flashApply(pr.set); $('#capK').textContent = '08 · Finishes — ' + pr.name; await sWait(2700); }
+      await v; SHOW.drift = 0;
+    } },
+  ];
+}
+function deskShow() {
+  const d = DK.desks[0], B = DK.desks[1];
+  return [
+    { name: 'Intro', run: async () => {
+      card('#intro', true); camSet([-3.6, .95, 3.3], [0, .86, 0]); await sWait(2000); card('#intro', false);
+      await Promise.all([sCam([3.05, 2.05, 3.5], [0, .86, -.05], 5.5), say('VCOP presents', 'BNP Paribas Trader Desk', 'A 1500 by 950 millimetre trading module, engineered for long days on the trading floor. Forty-four sets, built for BNP Paribas.')]);
+    } },
+    { name: 'Height', run: async () => {
+      await sCam([1.12, 1.0, 1.28], [.5, .68, .38], 2.4);
+      callout([.56, .715, .46], 'Height controller', '3 memory presets');
+      const v = say('01 · Sit to stand', 'Height at a touch', 'Press a memory button and dual motors lift the desk smoothly from sitting to standing, anywhere between 680 and 1250 millimetres.');
+      await sWait(1800); clearCallouts(); goPreset(d, 3);
+      await sCam([2.75, 1.8, 3.05], [0, 1.0, 0], 3.6);
+      await until(() => d.target == null, 16000); await v;
+    } },
+    { name: 'Columns', run: async () => {
+      await sCam([1.5, .95, .9], [.5, .72, -.19], 2.4);
+      callout([.535, .45, -.15], '3-stage round lifting column', 'JIE CHANG · synchronised');
+      await sWait(500); callout([.2, 1.05, .0], 'Fixed steel beam', 'houses motor & control box', 'l');
+      await say('02 · Engineering', 'Built to lift', 'Three-stage round columns telescope in perfect sync, beneath a fixed steel beam that houses the motor and control box.');
+      clearCallouts();
+    } },
+    { name: 'Cables', run: async () => {
+      await sCam([.8, 1.0, .6], [.15, .82, -.3], 2.2);
+      callout([.24, .85, -.27], 'Vertebra cable spine', 'flexes with every move');
+      await say('03 · Cable management', 'Cables, tamed', 'Vertebra cable spines flex with every move, keeping power and data tidy from cabinet to desktop.');
+      clearCallouts();
+    } },
+    { name: 'Screens', run: async () => {
+      goPreset(d, 1); const c = sCam([0, 1.65, 3.15], [0, 1.1, -.3], 3);
+      const v = say('04 · Multi-screen', 'Up to eight screens', 'A grommet-mounted monitor pole, reinforced by a steel spreader plate, carries four, six or eight screens in a wraparound array.');
+      await c; await sWait(600);
+      for (const n of [6, 8]) { $('#flash').classList.add('on'); await sWait(180); DK.monitors = n; DK.desks.forEach(buildRig); $('#flash').classList.remove('on'); $('#capK').textContent = `04 · Multi-screen — ${n} screens`; await sWait(2300); }
+      await until(() => d.target == null, 14000);
+      callout([0, .755, -.34], 'Grommet mount', '4–6 mm steel plate spreader'); await v; await sWait(900); clearCallouts();
+    } },
+    { name: 'Cabinet', run: async () => {
+      await sCam([-1.15, .66, 1.45], [-.45, .3, .1], 2.4);
+      const v = say('05 · Cabinet', 'Cool, secure storage', 'Below, a perforated steel cabinet keeps hardware cool and secure, with ventilated doors and a CPU tray on a telescopic slide.');
+      await deskDoor(d, 0); chk(); callout([-.48, .33, .105], 'Perforated steel', 'ventilated · powder-coated', 'l');
+      await sWait(2200); clearCallouts();
+      await sCam([.38, .62, 1.4], [0, .3, .25], 2); await deskTray(d); chk();
+      callout([.0, .44, .46], 'CPU holder tray', 'retractable telescopic slide');
+      await v; await sWait(800); clearCallouts(); await Promise.all([deskDoor(d, 0), deskTray(d)]); chk();
+    } },
+    { name: 'Exploded', run: async () => {
+      const p = sCam([3.9, 2.8, 4.4], [0, .95, 0], 2.4); setExplode(1); await p; SHOW.drift = .18;
+      await say('06 · Exploded view', 'Every part, on show', 'Every component is designed for fast installation and easy maintenance, across the whole trading floor.');
+      await sWait(2400); SHOW.drift = 0; setExplode(0); await sWait(1300);
+    } },
+    { name: 'Pair', run: async () => {
+      $('#flash').classList.add('on'); await sWait(200);
+      DK.monitors = 4; DK.desks.forEach(buildRig); DK.pair = true; B.group.visible = true; deskRoot.position.z = .48; setDeskHeight(B, 1.08); contact.scale.setScalar(3.4);
+      $('#flash').classList.remove('on');
+      await sCam([3.7, 1.75, 2.4], [0, .95, 0], 2.6);
+      callout([0, .74, 0], '10 mm tolerance gap', 'back-to-back modules');
+      const v = say('07 · Layout', 'Back to back', 'Modules pair back to back with a 10 millimetre tolerance gap, each lifting independently to suit its trader.');
+      await sWait(2200); clearCallouts(); d.target = 1.12; B.target = .74;
+      await until(() => d.target == null && B.target == null, 14000); await v;
+    } },
+    { name: 'Finishes', run: async () => {
+      await sCam([3.6, 2.3, 4.0], [0, .9, 0], 2.2); SHOW.drift = .25;
+      const v = say('08 · Finishes', 'Specified your way', 'HPL, FENIX super-matt or woodgrain tops, with powder-coated or metal frames.');
+      for (const pr of [...PRESETS.desk.slice(1), PRESETS.desk[0]]) { await flashApply(pr.set); $('#capK').textContent = '08 · Finishes — ' + pr.name; await sWait(2700); }
+      await v; SHOW.drift = 0;
+    } },
+  ];
+}
+
+/* ---- show lifecycle ---- */
+function card(sel, on) { $(sel).classList.toggle('in', on); }
+function snapshot() { return { fin: Object.fromEntries(Object.keys(PARTS).map(k => [k, PARTS[k].current.id])), handle: lock.handleOpt, hinge: lock.hingeOpt, mon: DK.monitors, pair: DK.pair, hA: DK.desks[0].h, hB: DK.desks[1].h, sel: lock.selected }; }
+function progress() { $('#prog').innerHTML = Array.from({ length: SHOW.n }, (_, i) => `<i class="${i < SHOW.idx ? 'done' : i === SHOW.idx ? 'on' : ''}"></i>`).join(''); }
+async function prep(prod) {
+  SHOW.fast = true;
+  if (prod === 'lockset') { await waitFor(() => !lock.busy); await allLockers(false); if (lock.lidOpen) await toggleLid(); setHandleOpt(1); setHingeOpt(1); screen('idle'); }
+  else {
+    for (const d of DK.desks) { d.dir = 0; d.target = null; if (d.doorsOpen[0]) await deskDoor(d, 0); if (d.doorsOpen[1]) await deskDoor(d, 1); if (d.trayOut) await deskTray(d); setDeskHeight(d, .74); }
+    DK.pair = false; DK.desks[1].group.visible = false; deskRoot.position.z = 0; contact.scale.setScalar(deskRoot.userData.contact);
+    if (DK.monitors !== 4) { DK.monitors = 4; DK.desks.forEach(buildRig); }
+    if (!DK.screensOn) { DK.screensOn = true; DK.desks.forEach(dd => dd.screens.forEach(s => s.mat.emissiveIntensity = .95)); }
+  }
+  setExplode(0); explodeT = 0; SHOW.fast = false;
+}
+async function startShow(prod = current) {
+  if (SHOW.on) return;
+  Object.assign(SHOW, { on: true, abort: false, fast: false, paused: false, drift: 0, idx: 0, prod });
+  $$('.modal').forEach(m => m.classList.remove('open'));
+  if (current !== prod) setProduct(prod, true);
+  SHOW.saved = snapshot(); SHOW.prevDark = document.documentElement.dataset.theme === 'dark';
+  setTheme(true); controls.autoRotate = false; $('#btnSpin').classList.remove('on'); controls.enabled = false;
+  document.body.classList.add('showing'); setPaused(false); card('#endCard', false);
+  try { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => { }); } catch (e) { }
+  pickVoice(); sfx.music(true); resize(); wakeCtl();
+  const chapters = prod === 'lockset' ? lockShow() : deskShow(); SHOW.n = chapters.length; progress();
+  let finished = false;
+  try {
+    await prep(prod);
+    for (let i = 0; i < chapters.length; i++) { SHOW.idx = i; SHOW.fast = false; progress(); clearCallouts(); chk(); await chapters[i].run(); chk(); }
+    finished = true;
+  } catch (e) { if (!(e instanceof Abort)) console.error(e); }
+  if (finished && !SHOW.abort) {
+    SHOW.idx = SHOW.n; progress(); clearCallouts(); $('#cap').classList.remove('in');
+    $('#endProd').textContent = products[prod].title; $('#endNext').textContent = prod === 'lockset' ? '▶ Watch the Trader Desk' : '▶ Watch the BLOCKS Lockset';
+    SHOW.drift = .2; card('#endCard', true); speak('VCOP. Valued, committed office partners.');
+  }
+}
+async function stopShow(then) {
+  if (!SHOW.on) return;
+  SHOW.abort = true; SHOW.fast = true; SHOW.paused = false; SHOW.drift = 0;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  card('#endCard', false); card('#intro', false); $('#cap').classList.remove('in'); clearCallouts();
+  await waitFor(() => !lock.busy && DK.desks.every(d => d.target == null), 5000);
+  const s = SHOW.saved;
+  if (current === 'lockset') { await allLockers(false); if (lock.lidOpen) await toggleLid(); }
+  for (const d of DK.desks) { d.dir = 0; d.target = null; if (d.doorsOpen[0]) await deskDoor(d, 0); if (d.doorsOpen[1]) await deskDoor(d, 1); if (d.trayOut) await deskTray(d); }
+  if (s) {
+    for (const [k, id] of Object.entries(s.fin)) applyFinish(k, id);
+    setHandleOpt(s.handle); setHingeOpt(s.hinge); lock.selected = s.sel;
+    if (DK.monitors !== s.mon) { DK.monitors = s.mon; DK.desks.forEach(buildRig); }
+    DK.pair = s.pair; DK.desks[1].group.visible = s.pair; deskRoot.position.z = s.pair ? .48 : 0;
+    setDeskHeight(DK.desks[0], s.hA); setDeskHeight(DK.desks[1], s.hB);
+  }
+  setExplode(0); screen('idle');
+  SHOW.fast = false; SHOW.on = false; controls.enabled = true;
+  document.body.classList.remove('showing'); setTheme(SHOW.prevDark); sfx.music(false);
+  if (document.fullscreenElement && !then) document.exitFullscreen?.().catch(() => { });
+  resize();
+  if (then) return then();
+  setProduct(current); setStatus('Show ended — explore freely, or press ▶ Play again', '');
+}
+function setPaused(p) {
+  SHOW.paused = p; $('#sPause').innerHTML = p ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>' : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>';
+  if ('speechSynthesis' in window) { p ? speechSynthesis.pause() : speechSynthesis.resume(); }
+  document.body.classList.toggle('show-paused', p);
+}
+let ctlTimer = 0;
+function wakeCtl() { document.body.classList.add('ctl-awake'); clearTimeout(ctlTimer); ctlTimer = setTimeout(() => { if (!SHOW.paused) document.body.classList.remove('ctl-awake'); }, 3200); }
+$('#btnPlay').onclick = () => startShow(current);
+$('#sPause').onclick = () => { setPaused(!SHOW.paused); wakeCtl(); };
+$('#sSkip').onclick = () => { if (SHOW.paused) setPaused(false); SHOW.fast = true; if ('speechSynthesis' in window) speechSynthesis.cancel(); wakeCtl(); };
+$('#sVoice').onclick = () => { SHOW.voice = !SHOW.voice; $('#sVoice').classList.toggle('off', !SHOW.voice); if (!SHOW.voice && 'speechSynthesis' in window) speechSynthesis.cancel(); wakeCtl(); };
+$('#sExit').onclick = () => stopShow();
+$('#endReplay').onclick = () => stopShow(() => startShow(current));
+$('#endNext').onclick = () => stopShow(() => { const o = current === 'lockset' ? 'desk' : 'lockset'; setProduct(o, true); startShow(o); });
+$('#endExplore').onclick = () => stopShow();
+addEventListener('pointermove', () => SHOW.on && wakeCtl()); addEventListener('pointerdown', () => SHOW.on && wakeCtl());
+addEventListener('keydown', e => {
+  if (!SHOW.on) return;
+  if (e.key === ' ') { e.preventDefault(); setPaused(!SHOW.paused); wakeCtl(); }
+  if (e.key === 'ArrowRight') $('#sSkip').click();
+  if (e.key === 'Escape' && !document.fullscreenElement) stopShow();
+});
+
 /* ============================== LOOP ============================== */
 function resize() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h); labelRenderer.setSize(w, h);
   camera.aspect = w / h;
   const pnl = $('#panel').getBoundingClientRect();
-  if (isMobile()) camera.setViewOffset(w, h, 0, Math.round(pnl.height * .42), w, h);
+  if (SHOW.on) camera.setViewOffset(w, h, 0, Math.round(h * (w < h ? .1 : .07)), w, h);   // lift the product above the captions
+  else if (isMobile()) camera.setViewOffset(w, h, 0, Math.round(pnl.height * .42), w, h);
   else camera.setViewOffset(w, h, Math.round((pnl.width + 18) / 2) - 30, 0, w, h);
   camera.updateProjectionMatrix();
 }
@@ -1397,10 +1806,12 @@ new ResizeObserver(resize).observe($('#panel'));
 
 const clock = new THREE.Clock(); let chartAcc = 0, frame = 0;
 function loop() {
-  const dt = Math.min(clock.getDelta(), .25), T = clock.elapsedTime;
+  const rdt = Math.min(clock.getDelta(), .25), dt = SHOW.paused ? 0 : rdt * (SHOW.fast ? 7 : 1), T = clock.elapsedTime;
+  for (let i = timers.length - 1; i >= 0; i--) { timers[i].t -= dt; if (timers[i].t <= 0) { const r = timers[i].r; timers.splice(i, 1); r(); } }
   for (let i = tweens.length - 1; i >= 0; i--) { const tw = tweens[i]; tw.t += dt; const k = Math.min(1, tw.t / tw.dur); tw.fn(tw.e(k)); if (k >= 1) { tweens.splice(i, 1); tw.res(); } }
   // explode
   const ed = explodeTarget - explodeT; if (Math.abs(ed) > 1e-4) explodeT += Math.sign(ed) * Math.min(Math.abs(ed), dt / 1.1);
+  if (SHOW.on && SHOW.drift && !camMoving && dt) { const off = camera.position.clone().sub(controls.target); off.applyAxisAngle(new THREE.Vector3(0, 1, 0), SHOW.drift * dt); camera.position.copy(controls.target).add(off); }
   const ee = ease.io(explodeT);
   for (const x of EX) x.g.position.copy(x.off).multiplyScalar(ee);
   for (const l of LABELS) { const vis = l.product === current && explodeT > .55 && (l.product !== 'desk' || true); l.obj.visible = vis; l.el.style.opacity = Math.max(0, (explodeT - .55) / .45); }
@@ -1426,7 +1837,7 @@ resize(); setProduct('lockset', true); screen('idle');
 requestAnimationFrame(() => { loop(); setTimeout(() => $('#loader').classList.add('done'), 350); });
 // first interaction unlocks audio on iOS
 addEventListener('pointerdown', () => { if (sfx.on) sfx.beep(1, .001, 0); }, { once: true });
-window.__vcop = { lock, DK, products, camPreset, setProduct, unlockSeq, toggleLid, toggleTray, deskDoor, deskTray, setDeskHeight, get explode() { return explodeT; }, set explode(v) { explodeT = explodeTarget = v; } };
+window.__vcop = { SHOW, startShow, stopShow, lock, DK, products, camPreset, setProduct, unlockSeq, toggleLid, toggleTray, deskDoor, deskTray, setDeskHeight, get explode() { return explodeT; }, set explode(v) { explodeT = explodeTarget = v; } };
 </script>
 </body>
 </html>

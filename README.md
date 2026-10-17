@@ -2,7 +2,7 @@
 
 **Live 3D product demo for VCOP Pte Ltd — Valued Committed Office Partners**
 
-▶ **Open the demo:** https://tzuchi-singapore.github.io/VCOP-Blocks-smart-lock-set-Demo/
+▶ **Open the demo:** https://tzuchi-singapore.github.io/VCOP-Product-Customisable-Demo/
 
 An interactive, browser-based 3D showcase that brings two VCOP furniture designs to life, built directly from the original design blueprints. It runs on any modern phone, tablet or computer — no app or plug-in needed.
 
@@ -31,6 +31,7 @@ An interactive, browser-based 3D showcase that brings two VCOP furniture designs
 
 | Feature | Description |
 |---|---|
+| ▶ Play show | Full-screen, narrated cinematic tour: hero reveal, close-up shots with callouts on each mechanism, exploded view, colour changes and an end card. Pause, skip scenes, voice on/off |
 | 360° view | Drag to rotate in any direction, pinch / scroll to zoom, preset views (3/4, front, side, top, back) |
 | Exploded view | One toggle separates every component and labels it |
 | Finishes | Change each component's material and colour: HPL, FENIX NTM®, woodgrain, Polykem, RAL powder-coat, metal finishes |
@@ -41,7 +42,7 @@ An interactive, browser-based 3D showcase that brings two VCOP furniture designs
 
 ## How to use
 
-1. Open the link and choose **BLOCKS Smart Lockset** or **Trader Desk** at the top.
+1. Press **▶ Play show** for the guided, narrated tour — or choose **BLOCKS Smart Lockset** or **Trader Desk** at the top.
 2. Use the **Live demo** tab to run the mechanisms — or tap a door, the reader, the iPad or the desk controller directly in 3D.
 3. Turn on **Exploded view** to see inside.
 4. Use **Finishes** to try materials and colours, **Specs** for dimensions, and **Blueprint** for the original drawings.
